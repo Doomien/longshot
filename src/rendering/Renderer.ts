@@ -45,6 +45,13 @@ export interface RenderFrame {
     shotsTotal: number;
     streak: number;
     muted: boolean;
+    paused: boolean;
+    accuracy: number;
+    hits: number;
+    bestStreak: number;
+    bestScore: number;
+    roundBonus: number;
+    isNewBest: boolean;
   };
   zoom: number;
   zoomLevels: number[];

@@ -55,7 +55,11 @@ function makeFrame(debugVisible = false): RenderFrame {
     particles: [],
     popups: [],
     lastShot: null,
-    hud: { mode: 'playing', score: 0, shotsRemaining: 10, shotsTotal: 10, streak: 0, muted: false },
+    hud: {
+      mode: 'playing', score: 0, shotsRemaining: 10, shotsTotal: 10, streak: 0, muted: false,
+      paused: false, accuracy: 0, hits: 0, bestStreak: 0, bestScore: 0, roundBonus: 0,
+      isNewBest: false,
+    },
     zoom: 2,
     zoomLevels: [1, 2, 4],
     fps: 60,
@@ -86,5 +90,27 @@ describe('renderers', () => {
     );
     expect(() => renderer.render(makeFrame(true))).not.toThrow();
     expect(ctx.setTransform).toHaveBeenCalled();
+  });
+
+  it('draws menu, round-complete, and paused overlays without throwing', () => {
+    const ctx = stubCtx();
+    const renderer = new CanvasRenderer(
+      ctx,
+      () => ({ canvasWidth: 1920, canvasHeight: 1080, scale: 1, offsetX: 0, offsetY: 0 }),
+      DEFAULT_CONFIG,
+    );
+    const base = makeFrame(false);
+    const menu = { ...base, hud: { ...base.hud, mode: 'menu' as const } };
+    const done = {
+      ...base,
+      hud: {
+        ...base.hud, mode: 'roundComplete' as const, score: 1234, hits: 7,
+        accuracy: 0.7, bestStreak: 4, bestScore: 1234, roundBonus: 200, isNewBest: true,
+      },
+    };
+    const paused = { ...base, hud: { ...base.hud, paused: true } };
+    expect(() => renderer.render(menu)).not.toThrow();
+    expect(() => renderer.render(done)).not.toThrow();
+    expect(() => renderer.render(paused)).not.toThrow();
   });
 });

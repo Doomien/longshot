@@ -31,8 +31,8 @@ Lifecycle stages:
 | Config centralization | ✅ | `src/core/Config.ts` single source; consumed by sim + overlay |
 | Developer tuning panel | ⚗️ | Read-only values in F1 overlay + console export stub; sliders in Phase 2 |
 | Resize handling | ⚗️ | Letterboxed 1920×1080 + DPR cap; browser resize check pending |
-| Pause on tab hide | ⚗️ | visibilitychange resets clock; browser check pending |
-| Responsive scaling | ⚗️ | Via ResizeHandler; browser check pending |
+| Pause on tab hide | ✅ | Auto-pause overlay, click resumes |
+| Responsive scaling | ⚗️ | Letterboxed 1920×1080 + DPR cap; visual check pending |
 | Frame-rate independence | ✅ | `smoothingFactor` half-step composition test; dt clamp 100ms |
 
 ## Aim Systems
@@ -73,14 +73,14 @@ Lifecycle stages:
 |---------|-------|-------|
 | World renderer | ⚗️ | Procedural placeholder; final art in Phase 6 |
 | Scope renderer | ⚗️ | Clip + reticle; browser playtest pending |
-| HUD (score, shots, streak) | ⚗️ | Counters + round panel; polish in Phase 5 |
-| Distance display | 💡 | |
+| HUD (score, shots, streak) | ✅ | Counters live; results panel on complete |
+| Distance display | 💡 | Deferred to art pass |
 | Particle system | ✅ | Capped pool, gravity; tested |
 | Impact effects (dust, spark, splinter) | ✅ | Per-material bursts + miss dust; tested |
 | Screen shake | ✅ | Trauma shake, render-only; tested |
 | Score popups | ✅ | Floating world-space text; tested |
-| Round start screen | 💡 | Phase 5 |
-| Round complete screen | ⚗️ | Basic canvas panel; polish in Phase 5 |
+| Round start screen | ✅ | Menu overlay, click/R starts |
+| Round complete screen | ✅ | Score/accuracy/streak/best + R restart |
 | Fire sound | ✅ | Procedural WebAudio; no-throw tested |
 | Impact sounds (metal, glass, dirt) | ✅ | Per-material synth; M mutes |
 | Distant echo / reverb | 💡 | Post-MVP polish |
@@ -90,7 +90,7 @@ Lifecycle stages:
 
 | Feature | Stage | Notes |
 |---------|-------|-------|
-| Ten-Shot Challenge | 💡 | MVP mode |
+| Ten-Shot Challenge | ✅ | Playable end-to-end 2026-09-10 |
 | Time Attack | 💡 | Post-MVP |
 | Find Them All | 💡 | Post-MVP |
 | One Shot | 💡 | Post-MVP |
@@ -105,8 +105,8 @@ Lifecycle stages:
 | End-of-round accuracy bonus | ✅ | Tiered bonus tested |
 | Center-hit bonus | ✅ | 1.5x tested |
 | Streak multiplier (capped) | ✅ | Tested |
-| Best score (localStorage) | 💡 | |
-| Session telemetry logging | 💡 | |
+| Best score (localStorage) | ✅ | Guarded load/store; shown in menu + results |
+| Session telemetry logging | ✅ | Console JSON on round complete; builder tested |
 
 ## Levels & Environment
 

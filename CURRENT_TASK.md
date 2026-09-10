@@ -21,7 +21,7 @@ kind: status
 - Docs created: `docs/vision/VISION.md`, `docs/architecture/overview.md`, `docs/roadmaps/mvp-roadmap.md`, `docs/status/feature-index.md`.
 
 ### Current
-- Phase 0 skeleton implemented on `feat/phase-0-skeleton` (10 tests green, build clean). Pending: in-browser playtest (pan, zoom, F1 overlay).
+- MVP slice complete on `feat/phase-0-skeleton` (45 tests green, build clean, dev serves 200). Pending: in-browser playtest + aim tuning, then Phase 6 art.
 
 ### Next Up (Implementation Agent A — Core/Camera)
 1. Initialize Vite + TypeScript project scaffold

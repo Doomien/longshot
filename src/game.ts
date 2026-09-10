@@ -5,12 +5,14 @@ import { DEFAULT_CONFIG, type GameConfig } from './core/Config.ts';
 import { DomGameLoop, type IGameLoop } from './core/GameLoop.ts';
 import { createInitialGameState, type GameState } from './core/GameState.ts';
 import { LOGICAL_HEIGHT, LOGICAL_WIDTH, ResizeHandler } from './core/ResizeHandler.ts';
+import { loadSave, storeSave, type SaveData } from './core/Persistence.ts';
+import { buildTelemetry, type ShotSample } from './core/Telemetry.ts';
 import type { Vec2 } from './core/types.ts';
 import { DomInputManager, type IInputSource } from './input/InputManager.ts';
 import { BACK_FORTY } from './levels/LevelDefinition.ts';
 import { CanvasRenderer } from './rendering/CanvasRenderer.ts';
 import type { IRenderer, RenderFrame } from './rendering/Renderer.ts';
-import { scoreForHit } from './targets/Scoring.ts';
+import { scoreForHit, accuracyBonus } from './targets/Scoring.ts';
 import { TargetManager } from './targets/TargetManager.ts';
 import type { TargetType } from './targets/TargetDefinitions.ts';
 import { AudioManager, type SoundName } from './audio/AudioManager.ts';
@@ -45,6 +47,11 @@ export class Game {
   private readonly popups = new ScorePopups();
   private readonly shake = new ScreenShake();
   private readonly audio = new AudioManager();
+  private save: SaveData = loadSave();
+  private shotLog: ShotSample[] = [];
+  private roundBonus = 0;
+  private isNewBest = false;
+  private paused = false;
   private lastShot: RenderFrame['lastShot'] = null;
   private readonly input: IInputSource;
   private readonly renderer: IRenderer;
@@ -59,7 +66,8 @@ export class Game {
     options: GameOptions = {},
   ) {
     this.config = options.config ?? structuredClone(DEFAULT_CONFIG);
-    this.state = createInitialGameState(this.config.round.shots);
+    // Boot to the menu; the round starts on first click / R.
+    this.state = createInitialGameState(this.config.round.shots, 'menu');
     this.camera = new Camera(
       this.config.world.width,
       this.config.world.height,
@@ -99,6 +107,7 @@ export class Game {
       });
 
     window.addEventListener('resize', this.handleResize);
+    document.addEventListener('visibilitychange', this.handleVisibility);
   }
 
   start(): void {
@@ -108,6 +117,7 @@ export class Game {
   stop(): void {
     this.loop.stop();
     window.removeEventListener('resize', this.handleResize);
+    document.removeEventListener('visibilitychange', this.handleVisibility);
   }
 
   /** Sim step. Public so tests / future engine adapters can drive it. */
@@ -125,11 +135,35 @@ export class Game {
     while (this.input.consumeZoomOut()) zoomChanged = this.scope.zoomOut() || zoomChanged;
     if (zoomChanged) this.camera.setZoom(this.scope.zoom);
 
+    // Restart / mute intents are consumed before the sim step so pause can
+    // intercept them without advancing aim, camera, or effects.
+    let wantsRestart = false;
+    while (this.input.consumeRestartPressed()) wantsRestart = true;
+    while (this.input.consumeMuteToggle()) this.audio.toggleMute();
+
+    if (this.paused) {
+      // Click resumes (swallowed, never fires); R restarts fresh.
+      let resume = false;
+      while (this.input.consumeFirePressed()) resume = true;
+      if (wantsRestart) {
+        this.paused = false;
+        this.restartRound();
+      } else if (resume) {
+        this.paused = false;
+      }
+      return;
+    }
+    if (wantsRestart) {
+      this.restartRound();
+      return;
+    }
+
     // Phase 2 aim pipeline: mouse position maps proportionally across the
     // world (camera-independent desired point) -> follow inertia + sway +
     // recoil in AimController -> camera eases toward the smoothed aim.
     // Two-stage lag gives the scope visible weight; the reticle (not the
     // raw cursor) is what the scope centers on and what shots resolve from.
+    // Aim updates BEFORE fire handling so shots resolve from this frame.
     const mouse = this.input.aimScreen;
     const desiredWorld = {
       x: (mouse.x / LOGICAL_WIDTH) * this.config.world.width,
@@ -144,10 +178,12 @@ export class Game {
       pos.y + (smoothed.y - pos.y) * k,
     );
 
-    // Restart works from any mode; firing only while playing.
-    while (this.input.consumeRestartPressed()) this.restartRound();
-    while (this.input.consumeMuteToggle()) this.audio.toggleMute();
-    if (this.state.mode === 'playing') {
+    if (this.state.mode === 'menu') {
+      // First click starts the round; the world stays alive behind the menu.
+      let start = false;
+      while (this.input.consumeFirePressed()) start = true;
+      if (start) this.restartRound();
+    } else if (this.state.mode === 'playing') {
       while (this.input.consumeFirePressed()) this.fireShot();
     } else {
       while (this.input.consumeFirePressed()) {
@@ -174,6 +210,8 @@ export class Game {
     const impact: Vec2 = this.aim.impactPoint(rng);
     const found = this.targets.findHit(impact);
     this.audio.play('fire');
+    // Telemetry sample BEFORE recoil/stability effects land.
+    this.shotLog.push({ stability: this.aim.snapshot.stability, zoom: this.scope.zoom });
     if (found) {
       const res = this.targets.markHit(found, impact, this.elapsed);
       this.state.streak += 1;
@@ -200,9 +238,26 @@ export class Game {
     this.state.shotsFired += 1;
     this.state.shotsRemaining -= 1;
     if (this.state.shotsRemaining <= 0) {
-      this.state.mode = 'roundComplete';
-      this.audio.play('round');
+      this.completeRound();
     }
+  }
+
+  /** Round end: accuracy bonus, persistence, telemetry. */
+  private completeRound(): void {
+    this.state.mode = 'roundComplete';
+    this.roundBonus = accuracyBonus(this.state.hits, this.state.shotsFired);
+    this.state.score += this.roundBonus;
+    const accuracy = this.state.shotsFired > 0 ? this.state.hits / this.state.shotsFired : 0;
+    this.isNewBest = this.state.score > this.save.bestScore;
+    this.save = {
+      bestScore: Math.max(this.save.bestScore, this.state.score),
+      bestAccuracy: Math.max(this.save.bestAccuracy, accuracy),
+      roundsPlayed: this.save.roundsPlayed + 1,
+    };
+    storeSave(this.save);
+    this.audio.play('round');
+    // eslint-disable-next-line no-console
+    console.log('[longshot] round telemetry', buildTelemetry(this.shotLog, this.state.hits));
   }
 
   restartRound(seed: number = Date.now()): void {
@@ -219,6 +274,9 @@ export class Game {
     this.particles.clear();
     this.popups.clear();
     this.shake.reset();
+    this.shotLog = [];
+    this.roundBonus = 0;
+    this.isNewBest = false;
     this.lastShot = null;
   }
 
@@ -258,6 +316,13 @@ export class Game {
         shotsTotal: this.config.round.shots,
         streak: this.state.streak,
         muted: this.audio.isMuted,
+        paused: this.paused,
+        accuracy: this.state.shotsFired > 0 ? this.state.hits / this.state.shotsFired : 0,
+        hits: this.state.hits,
+        bestStreak: this.state.bestStreak,
+        bestScore: this.save.bestScore,
+        roundBonus: this.roundBonus,
+        isNewBest: this.isNewBest,
       },
       zoom: this.scope.zoom,
       zoomLevels: this.scope.levels,
@@ -270,6 +335,13 @@ export class Game {
 
   private readonly handleResize = (): void => {
     this.resizer?.resize();
+  };
+
+  private readonly handleVisibility = (): void => {
+    // Auto-pause when the tab hides mid-round; resume on click.
+    if (typeof document !== 'undefined' && document.hidden && this.state.mode === 'playing') {
+      this.paused = true;
+    }
   };
 }
 

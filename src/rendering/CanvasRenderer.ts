@@ -49,17 +49,67 @@ function drawHud(ctx: CanvasRenderingContext2D, frame: RenderFrame): void {
   ctx.fillText(`SCOPE ${frame.zoom}x${hud.muted ? '  MUTED' : ''}`, 1896, 100);
   ctx.restore();
 
-  if (hud.mode === 'roundComplete') {
+  if (hud.mode === 'menu') {
+    drawMenu(ctx, frame);
+  } else if (hud.mode === 'roundComplete') {
     ctx.save();
     ctx.fillStyle = 'rgba(4, 6, 9, 0.72)';
     ctx.fillRect(0, 0, frame.camera.viewportWidth, frame.camera.viewportHeight);
     ctx.fillStyle = '#f2f5f7';
     ctx.textAlign = 'center';
+    const cx = frame.camera.viewportWidth / 2;
     ctx.font = '700 64px ui-monospace, Menlo, monospace';
-    ctx.fillText('ROUND COMPLETE', frame.camera.viewportWidth / 2, 460);
-    ctx.font = '500 40px ui-monospace, Menlo, monospace';
-    ctx.fillText(`SCORE  ${hud.score}`, frame.camera.viewportWidth / 2, 540);
-    ctx.fillText('Press R to shoot again', frame.camera.viewportWidth / 2, 620);
+    ctx.fillText('ROUND COMPLETE', cx, 400);
+    if (hud.isNewBest) {
+      ctx.fillStyle = '#ffe66d';
+      ctx.font = '700 40px ui-monospace, Menlo, monospace';
+      ctx.fillText('NEW BEST!', cx, 460);
+    }
+    ctx.fillStyle = '#f2f5f7';
+    ctx.font = '500 38px ui-monospace, Menlo, monospace';
+    ctx.fillText(`SCORE ${hud.score}   (accuracy bonus +${hud.roundBonus})`, cx, 530);
+    ctx.fillText(
+      `HITS ${hud.hits}/${hud.shotsTotal}   ACC ${(hud.accuracy * 100).toFixed(0)}%   BEST STREAK ${hud.bestStreak}`,
+      cx,
+      585,
+    );
+    ctx.fillText(`BEST ${hud.bestScore}   —   Press R to shoot again`, cx, 650);
     ctx.restore();
   }
+
+  if (hud.paused && hud.mode === 'playing') {
+    ctx.save();
+    ctx.fillStyle = 'rgba(4, 6, 9, 0.6)';
+    ctx.fillRect(0, 0, frame.camera.viewportWidth, frame.camera.viewportHeight);
+    ctx.fillStyle = '#f2f5f7';
+    ctx.textAlign = 'center';
+    ctx.font = '700 56px ui-monospace, Menlo, monospace';
+    ctx.fillText('PAUSED — click to resume', frame.camera.viewportWidth / 2, 540);
+    ctx.restore();
+  }
+}
+
+function drawMenu(ctx: CanvasRenderingContext2D, frame: RenderFrame): void {
+  ctx.save();
+  ctx.fillStyle = 'rgba(4, 6, 9, 0.55)';
+  ctx.fillRect(0, 0, frame.camera.viewportWidth, frame.camera.viewportHeight);
+  ctx.textAlign = 'center';
+  const cx = frame.camera.viewportWidth / 2;
+  ctx.fillStyle = '#f2f5f7';
+  ctx.font = '700 84px ui-monospace, Menlo, monospace';
+  ctx.fillText('LONGSHOT', cx, 380);
+  ctx.font = '500 34px ui-monospace, Menlo, monospace';
+  ctx.fillText('Target Practice', cx, 435);
+  ctx.font = '400 30px ui-monospace, Menlo, monospace';
+  ctx.fillStyle = '#c9d6df';
+  ctx.fillText('Move to scan — settle the reticle — time the sway — click to fire', cx, 520);
+  ctx.fillText('Wheel / Z/X zoom   ·   R restart   ·   M mute   ·   F1 debug', cx, 570);
+  if (frame.hud.bestScore > 0) {
+    ctx.fillStyle = '#ffe66d';
+    ctx.fillText(`BEST ${frame.hud.bestScore}`, cx, 630);
+  }
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '700 38px ui-monospace, Menlo, monospace';
+  ctx.fillText(frame.elapsed % 1 < 0.7 ? '— click to start —' : '', cx, 700);
+  ctx.restore();
 }

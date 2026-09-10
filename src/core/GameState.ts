@@ -16,9 +16,9 @@ export interface GameState {
   elapsedTime: number;
 }
 
-export function createInitialGameState(totalShots: number): GameState {
+export function createInitialGameState(totalShots: number, mode: GameMode = 'playing'): GameState {
   return {
-    mode: 'playing',
+    mode,
     score: 0,
     shotsRemaining: totalShots,
     shotsFired: 0,
