@@ -1,6 +1,7 @@
 import { drawWorld } from './WorldRenderer.ts';
 import { drawScope } from './ScopeRenderer.ts';
 import { drawTargets } from './TargetRenderer.ts';
+import { drawParticles, drawPopups } from './EffectsRenderer.ts';
 import { drawDebugOverlay } from './DebugOverlay.ts';
 import type { GameConfig } from '../core/Config.ts';
 import type { Viewport } from '../core/ResizeHandler.ts';
@@ -27,6 +28,8 @@ export class CanvasRenderer implements IRenderer {
 
     drawWorld(ctx, frame);
     drawTargets(ctx, frame.camera, frame.targets);
+    drawParticles(ctx, frame.camera, frame.particles);
+    drawPopups(ctx, frame.camera, frame.popups);
     drawScope(ctx, frame);
     drawHud(ctx, frame);
     drawDebugOverlay(ctx, frame, this.config);
@@ -43,7 +46,7 @@ function drawHud(ctx: CanvasRenderingContext2D, frame: RenderFrame): void {
   ctx.fillText(hud.streak > 1 ? `STREAK x${hud.streak}` : '', 24, 100);
   ctx.textAlign = 'right';
   ctx.fillText(`SHOTS ${hud.shotsRemaining}/${hud.shotsTotal}`, 1896, 60);
-  ctx.fillText(`SCOPE ${frame.zoom}x`, 1896, 100);
+  ctx.fillText(`SCOPE ${frame.zoom}x${hud.muted ? '  MUTED' : ''}`, 1896, 100);
   ctx.restore();
 
   if (hud.mode === 'roundComplete') {

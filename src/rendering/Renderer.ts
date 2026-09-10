@@ -1,5 +1,7 @@
 import type { CameraSnapshot } from '../camera/Camera.ts';
 import type { GameMode } from '../core/GameState.ts';
+import type { Particle } from '../effects/ParticleSystem.ts';
+import type { ScorePopup } from '../effects/ScorePopups.ts';
 import type { ActiveTarget } from '../targets/TargetDefinitions.ts';
 import type { Vec2 } from '../core/types.ts';
 
@@ -30,6 +32,10 @@ export interface RenderFrame {
   spreadWorld: number;
   /** Live targets (references are read-only for renderers). */
   targets: readonly ActiveTarget[];
+  /** Live particles (read-only). */
+  particles: readonly Particle[];
+  /** Floating score popups (read-only). */
+  popups: readonly ScorePopup[];
   /** Last resolved shot, if any this round. */
   lastShot: { impact: Vec2; hit: boolean; points: number; center: boolean } | null;
   hud: {
@@ -38,6 +44,7 @@ export interface RenderFrame {
     shotsRemaining: number;
     shotsTotal: number;
     streak: number;
+    muted: boolean;
   };
   zoom: number;
   zoomLevels: number[];

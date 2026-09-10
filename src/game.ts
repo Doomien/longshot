@@ -12,6 +12,13 @@ import { CanvasRenderer } from './rendering/CanvasRenderer.ts';
 import type { IRenderer, RenderFrame } from './rendering/Renderer.ts';
 import { scoreForHit } from './targets/Scoring.ts';
 import { TargetManager } from './targets/TargetManager.ts';
+import type { TargetType } from './targets/TargetDefinitions.ts';
+import { AudioManager, type SoundName } from './audio/AudioManager.ts';
+import { ParticleSystem } from './effects/ParticleSystem.ts';
+import { spawnHitBurst, spawnMissPuff } from './effects/ImpactEffects.ts';
+import { ScorePopups } from './effects/ScorePopups.ts';
+import { ScreenShake } from './effects/ScreenShake.ts';
+import { updateTargetReactions } from './effects/TargetReactions.ts';
 import { smoothingFactor } from './utils/math.ts';
 import type { Rng } from './utils/random.ts';
 
@@ -34,6 +41,10 @@ export class Game {
   readonly scope: ScopeController;
   readonly aim: AimController;
   readonly targets: TargetManager;
+  private readonly particles = new ParticleSystem();
+  private readonly popups = new ScorePopups();
+  private readonly shake = new ScreenShake();
+  private readonly audio = new AudioManager();
   private lastShot: RenderFrame['lastShot'] = null;
   private readonly input: IInputSource;
   private readonly renderer: IRenderer;
@@ -72,7 +83,7 @@ export class Game {
     this.resizer = new ResizeHandler(canvas, ctx);
     this.resizer.resize();
 
-    const domInput = new DomInputManager(canvas, this.resizer);
+    const domInput = new DomInputManager(canvas, this.resizer, () => this.audio.unlock());
     domInput.attach();
     this.input = options.input ?? domInput;
 
@@ -135,6 +146,7 @@ export class Game {
 
     // Restart works from any mode; firing only while playing.
     while (this.input.consumeRestartPressed()) this.restartRound();
+    while (this.input.consumeMuteToggle()) this.audio.toggleMute();
     if (this.state.mode === 'playing') {
       while (this.input.consumeFirePressed()) this.fireShot();
     } else {
@@ -142,6 +154,12 @@ export class Game {
         /* swallow clicks on the round-complete panel */
       }
     }
+
+    // Feedback sim (proposal section 31 order: targets -> effects).
+    updateTargetReactions(this.targets.all, dt);
+    this.particles.update(dt);
+    this.popups.update(dt);
+    this.shake.update(dt);
   }
 
   /**
@@ -155,6 +173,7 @@ export class Game {
 
     const impact: Vec2 = this.aim.impactPoint(rng);
     const found = this.targets.findHit(impact);
+    this.audio.play('fire');
     if (found) {
       const res = this.targets.markHit(found, impact, this.elapsed);
       this.state.streak += 1;
@@ -163,9 +182,17 @@ export class Game {
       this.state.score += points;
       this.state.hits += 1;
       this.lastShot = { impact, hit: true, points, center: res.center };
+      spawnHitBurst(this.particles, impact, found.type, rng);
+      this.popups.add(impact, res.center ? `+${points} CENTER!` : `+${points}`);
+      this.audio.play(materialSound(found.type));
+      this.audio.play('score');
+      this.shake.add(0.35);
     } else {
       this.state.streak = 0;
       this.lastShot = { impact, hit: false, points: 0, center: false };
+      spawnMissPuff(this.particles, impact, rng);
+      this.audio.play('dirt');
+      this.shake.add(0.15);
     }
 
     // Recoil applies AFTER impact resolution — never moves this shot.
@@ -174,6 +201,7 @@ export class Game {
     this.state.shotsRemaining -= 1;
     if (this.state.shotsRemaining <= 0) {
       this.state.mode = 'roundComplete';
+      this.audio.play('round');
     }
   }
 
@@ -188,6 +216,9 @@ export class Game {
     this.state.bestStreak = 0;
     this.state.elapsedTime = 0;
     this.targets.reset(seed);
+    this.particles.clear();
+    this.popups.clear();
+    this.shake.reset();
     this.lastShot = null;
   }
 
@@ -196,8 +227,17 @@ export class Game {
     const aimScreen = this.input.aimScreen;
     const aimWorld = this.camera.screenToWorld(aimScreen.x, aimScreen.y);
     const snap = this.aim.snapshot;
+    // Screen shake offsets the RENDER camera only — sim coords untouched.
+    const shakePx = this.shake.offset(this.elapsed);
+    const zoom = this.scope.zoom;
+    const cam = this.camera.state;
+    const shakenCamera = {
+      ...cam,
+      x: cam.x + shakePx.x / zoom,
+      y: cam.y + shakePx.y / zoom,
+    };
     const frame: RenderFrame = {
-      camera: this.camera.state,
+      camera: shakenCamera,
       worldWidth: this.config.world.width,
       worldHeight: this.config.world.height,
       aimScreen,
@@ -208,6 +248,8 @@ export class Game {
       swayPixels: snap.swayPixels,
       spreadWorld: snap.spreadWorld,
       targets: this.targets.all,
+      particles: this.particles.list,
+      popups: this.popups.list,
       lastShot: this.lastShot ? { ...this.lastShot, impact: { ...this.lastShot.impact } } : null,
       hud: {
         mode: this.state.mode,
@@ -215,6 +257,7 @@ export class Game {
         shotsRemaining: this.state.shotsRemaining,
         shotsTotal: this.config.round.shots,
         streak: this.state.streak,
+        muted: this.audio.isMuted,
       },
       zoom: this.scope.zoom,
       zoomLevels: this.scope.levels,
@@ -228,4 +271,15 @@ export class Game {
   private readonly handleResize = (): void => {
     this.resizer?.resize();
   };
+}
+
+function materialSound(type: TargetType): SoundName {
+  switch (type) {
+    case 'glassBottle':
+      return 'glass';
+    case 'clayTarget':
+      return 'clay';
+    default:
+      return 'metal';
+  }
 }

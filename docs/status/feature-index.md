@@ -63,7 +63,7 @@ Lifecycle stages:
 | Elliptical hitboxes | ✅ | `pointInTarget` edge-tested |
 | Center-hit / bullseye zone | ✅ | Normalized zone + 1.5x bonus tested |
 | Localized impact position | ✅ | `worldToLocal`; seeds tumble direction |
-| Target reactions (tumble/rotation) | 💡 | Static knocked pose now; animated in Phase 4 |
+| Target reactions (tumble/rotation) | ✅ | Authored gravity tumble, settles to floor; tested |
 | Randomized sessions (seeded RNG) | ✅ | mulberry32 session select; determinism tested |
 | Shuffled target selection | ✅ | Same suite |
 
@@ -71,20 +71,20 @@ Lifecycle stages:
 
 | Feature | Stage | Notes |
 |---------|-------|-------|
-| World renderer | 💡 | Background + overlays |
-| Scope renderer | 💡 | Clip mask + darken outside |
-| HUD (score, shots, streak) | 💡 | |
+| World renderer | ⚗️ | Procedural placeholder; final art in Phase 6 |
+| Scope renderer | ⚗️ | Clip + reticle; browser playtest pending |
+| HUD (score, shots, streak) | ⚗️ | Counters + round panel; polish in Phase 5 |
 | Distance display | 💡 | |
-| Particle system | 💡 | |
-| Impact effects (dust, spark, splinter) | 💡 | |
-| Screen shake | 💡 | |
-| Score popups | 💡 | |
-| Round start screen | 💡 | |
-| Round complete screen | 💡 | |
-| Fire sound | 💡 | |
-| Impact sounds (metal, glass, dirt) | 💡 | |
-| Distant echo / reverb | 💡 | |
-| Randomized pitch variation | 💡 | |
+| Particle system | ✅ | Capped pool, gravity; tested |
+| Impact effects (dust, spark, splinter) | ✅ | Per-material bursts + miss dust; tested |
+| Screen shake | ✅ | Trauma shake, render-only; tested |
+| Score popups | ✅ | Floating world-space text; tested |
+| Round start screen | 💡 | Phase 5 |
+| Round complete screen | ⚗️ | Basic canvas panel; polish in Phase 5 |
+| Fire sound | ✅ | Procedural WebAudio; no-throw tested |
+| Impact sounds (metal, glass, dirt) | ✅ | Per-material synth; M mutes |
+| Distant echo / reverb | 💡 | Post-MVP polish |
+| Randomized pitch variation | ✅ | Jitter on every play |
 
 ## Game Modes
 

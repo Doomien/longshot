@@ -18,6 +18,8 @@ export interface IInputSource {
   consumeFirePressed(): boolean;
   /** Consume one pending round restart (R). */
   consumeRestartPressed(): boolean;
+  /** Consume one pending mute toggle (M). */
+  consumeMuteToggle(): boolean;
 }
 
 export class DomInputManager implements IInputSource {
@@ -27,11 +29,13 @@ export class DomInputManager implements IInputSource {
   private debugToggles = 0;
   private firePresses = 0;
   private restartPresses = 0;
+  private mutePresses = 0;
   private detachFns: Array<() => void> = [];
 
   constructor(
     _canvas: HTMLCanvasElement,
     private readonly resizer: ResizeHandler,
+    private readonly onGesture?: () => void,
   ) {}
 
   get aimScreen(): Vec2 {
@@ -50,7 +54,12 @@ export class DomInputManager implements IInputSource {
       if (e.deltaY < 0) this.zoomInSteps += 1;
       else if (e.deltaY > 0) this.zoomOutSteps += 1;
     };
+    // Audio unlock must run synchronously inside the user gesture.
+    const notifyGesture = (): void => {
+      this.onGesture?.();
+    };
     const onKey = (e: KeyboardEvent): void => {
+      notifyGesture();
       if (e.key === 'F1') {
         e.preventDefault();
         this.debugToggles += 1;
@@ -60,9 +69,12 @@ export class DomInputManager implements IInputSource {
         this.zoomOutSteps += 1;
       } else if (e.key === 'r' || e.key === 'R') {
         this.restartPresses += 1;
+      } else if (e.key === 'm' || e.key === 'M') {
+        this.mutePresses += 1;
       }
     };
     const onFire = (e: MouseEvent): void => {
+      notifyGesture();
       if (e.button === 0) this.firePresses += 1;
     };
     window.addEventListener('mousemove', onMove);
@@ -118,6 +130,14 @@ export class DomInputManager implements IInputSource {
   consumeRestartPressed(): boolean {
     if (this.restartPresses > 0) {
       this.restartPresses -= 1;
+      return true;
+    }
+    return false;
+  }
+
+  consumeMuteToggle(): boolean {
+    if (this.mutePresses > 0) {
+      this.mutePresses -= 1;
       return true;
     }
     return false;

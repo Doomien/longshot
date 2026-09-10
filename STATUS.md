@@ -20,6 +20,7 @@ owner: K_St_Games Team
 - Phase 0 skeleton implemented on `feat/phase-0-skeleton` (Vite+TS, loop, input, camera, scope mask, F1 overlay; 10 tests green, build clean — browser playtest pending)
 - Phase 2 aim feel implemented (AimController, sway, stability, recoil, dispersion; 24 tests green — browser playtest pending)
 - Phase 3 targets implemented (5 archetypes, Back Forty spawns, ellipse hitboxes, bullseye, scoring; 34 tests green; slice playable: click to shoot, R to restart)
+- Phase 4 feedback implemented (tumble reactions, particles, per-material bursts, procedural WebAudio, trauma shake, score popups; 40 tests green)
 
 ## Next
 - **Vertical Slice (Phase 0):** Vite + TypeScript scaffold, Canvas game loop, input, camera with scope masking, reticle, zoom, aim smoothing, sway, stability, one target, one shot, one hit reaction
