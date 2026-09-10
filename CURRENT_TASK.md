@@ -21,7 +21,7 @@ kind: status
 - Docs created: `docs/vision/VISION.md`, `docs/architecture/overview.md`, `docs/roadmaps/mvp-roadmap.md`, `docs/status/feature-index.md`.
 
 ### Current
-- Ready for agentic implementation handoff.
+- Phase 0 skeleton implemented on `feat/phase-0-skeleton` (10 tests green, build clean). Pending: in-browser playtest (pan, zoom, F1 overlay).
 
 ### Next Up (Implementation Agent A — Core/Camera)
 1. Initialize Vite + TypeScript project scaffold

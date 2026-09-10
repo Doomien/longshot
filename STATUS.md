@@ -17,7 +17,7 @@ owner: K_St_Games Team
 ## Now
 - Product proposal complete and documented (86 sections)
 - Project document set landed (AGENTS, README, STATUS, CURRENT_TASK, vision, architecture, roadmap, feature index)
-- Repository initialized, ready for implementation
+- Phase 0 skeleton implemented on `feat/phase-0-skeleton` (Vite+TS, loop, input, camera, scope mask, F1 overlay; 10 tests green, build clean — browser playtest pending)
 
 ## Next
 - **Vertical Slice (Phase 0):** Vite + TypeScript scaffold, Canvas game loop, input, camera with scope masking, reticle, zoom, aim smoothing, sway, stability, one target, one shot, one hit reaction
@@ -30,7 +30,7 @@ owner: K_St_Games Team
 ## Roadmap
 | Phase | Goal | Status |
 |-------|------|--------|
-| 0 — Skeleton | Vite + Canvas + game loop + input + debug overlay | ⏳ Not started |
+| 0 — Skeleton | Vite + Canvas + game loop + input + debug overlay | ⚗️ Prototype (code done, browser playtest pending) |
 | 1 — Scope | Scope mask, reticle, zoom, camera, coordinates | ⏳ Not started |
 | 2 — Aim Feel | Smoothing, sway, stability, recoil | ⏳ Not started |
 | 3 — Targets | Data, sprites, spawn, hitboxes, resolution | ⏳ Not started |

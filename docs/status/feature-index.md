@@ -21,19 +21,19 @@ Lifecycle stages:
 
 | Feature | Stage | Notes |
 |---------|-------|-------|
-| Game loop (RAF) | 💡 | |
-| Input (mouse + click + wheel) | 💡 | |
-| Camera (pan/zoom) | 💡 | |
-| Scope mask (circle clip) | 💡 | |
-| Reticle | 💡 | |
-| Coordinate conversion | 💡 | screenToWorld / worldToScreen |
-| Debug overlay (F1) | 💡 | |
-| Config centralization | 💡 | Single JSON/config module |
-| Developer tuning panel | 💡 | |
-| Resize handling | 💡 | |
-| Pause on tab hide | 💡 | |
-| Responsive scaling | 💡 | 1920×1080 logical canvas |
-| Frame-rate independence | 💡 | dt-based updates throughout |
+| Game loop (RAF) | ✅ | DomGameLoop, dt-clamped; `npm test` + `npm run build` green 2026-09-10 |
+| Input (mouse + click + wheel) | ⚗️ | Move/wheel/Z/X/F1 live; click-to-fire pending Phase 3 |
+| Camera (pan/zoom) | ✅ | Camera + ScopeController; `Camera.test.ts` 7/7 green 2026-09-10 |
+| Scope mask (circle clip) | ⚗️ | Basic clip + darken + edge; lens polish later; browser playtest pending |
+| Reticle | ⚗️ | Basic crosshair + ticks; browser playtest pending |
+| Coordinate conversion | ✅ | screenToWorld/worldToScreen round-trip tested 2026-09-10 |
+| Debug overlay (F1) | ⚗️ | Toggle renders FPS/cam/zoom/world; smoke-tested, browser check pending |
+| Config centralization | ✅ | `src/core/Config.ts` single source; consumed by sim + overlay |
+| Developer tuning panel | ⚗️ | Read-only values in F1 overlay + console export stub; sliders in Phase 2 |
+| Resize handling | ⚗️ | Letterboxed 1920×1080 + DPR cap; browser resize check pending |
+| Pause on tab hide | ⚗️ | visibilitychange resets clock; browser check pending |
+| Responsive scaling | ⚗️ | Via ResizeHandler; browser check pending |
+| Frame-rate independence | ✅ | `smoothingFactor` half-step composition test; dt clamp 100ms |
 
 ## Aim Systems
 
