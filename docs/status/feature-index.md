@@ -52,20 +52,20 @@ Lifecycle stages:
 
 | Feature | Stage | Notes |
 |---------|-------|-------|
-| Beer can | 💡 | |
-| Glass bottle | 💡 | |
-| Metal plate | 💡 | |
-| Tin can | 💡 | |
-| Clay target | 💡 | |
-| Target definitions (TypeScript interface) | 💡 | |
-| Spawn points (authored) | 💡 | |
-| Rectangular hitboxes | 💡 | |
-| Elliptical hitboxes | 💡 | |
-| Center-hit / bullseye zone | 💡 | |
-| Localized impact position | 💡 | |
-| Target reactions (tumble/rotation) | 💡 | Authored animation, no physics engine |
-| Randomized sessions (seeded RNG) | 💡 | |
-| Shuffled target selection | 💡 | |
+| Beer can | ✅ | Definition + procedural sprite; `Targets.test.ts` 2026-09-10 |
+| Glass bottle | ✅ | Definition + procedural sprite |
+| Metal plate | ✅ | Definition + procedural sprite |
+| Tin can | ⚗️ | Definition + sprite; spawns in rotation |
+| Clay target | ⚗️ | Definition + sprite; far-ridge spawns |
+| Target definitions (TypeScript interface) | ✅ | `TargetDefinitions.ts` |
+| Spawn points (authored) | ✅ | Back Forty 12 points; seeded shuffle tested |
+| Rectangular hitboxes | ✅ | `pointInRect` tested |
+| Elliptical hitboxes | ✅ | `pointInTarget` edge-tested |
+| Center-hit / bullseye zone | ✅ | Normalized zone + 1.5x bonus tested |
+| Localized impact position | ✅ | `worldToLocal`; seeds tumble direction |
+| Target reactions (tumble/rotation) | 💡 | Static knocked pose now; animated in Phase 4 |
+| Randomized sessions (seeded RNG) | ✅ | mulberry32 session select; determinism tested |
+| Shuffled target selection | ✅ | Same suite |
 
 ## Rendering & Feedback
 
@@ -101,10 +101,10 @@ Lifecycle stages:
 
 | Feature | Stage | Notes |
 |---------|-------|-------|
-| Score = base × distance × streak | 💡 | |
-| End-of-round accuracy bonus | 💡 | |
-| Center-hit bonus | 💡 | |
-| Streak multiplier (capped) | 💡 | |
+| Score = base × distance × streak | ✅ | `Scoring.ts` tested (cap 2.0) |
+| End-of-round accuracy bonus | ✅ | Tiered bonus tested |
+| Center-hit bonus | ✅ | 1.5x tested |
+| Streak multiplier (capped) | ✅ | Tested |
 | Best score (localStorage) | 💡 | |
 | Session telemetry logging | 💡 | |
 

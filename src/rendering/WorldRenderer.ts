@@ -1,3 +1,4 @@
+import { applyCameraTransform } from './cameraTransform.ts';
 import type { RenderFrame } from './Renderer.ts';
 
 // Procedural placeholder background (Phase 0 stand-in for the illustrated
@@ -12,10 +13,7 @@ export function drawWorld(
   const { camera, worldWidth: W, worldHeight: H } = frame;
 
   ctx.save();
-  // World -> screen: screen = (world - camPos) * zoom + viewport/2.
-  ctx.translate(camera.viewportWidth / 2, camera.viewportHeight / 2);
-  ctx.scale(camera.zoom, camera.zoom);
-  ctx.translate(-camera.x, -camera.y);
+  applyCameraTransform(ctx, camera);
 
   // Sky.
   const sky = ctx.createLinearGradient(0, 0, 0, H * 0.55);
@@ -75,17 +73,6 @@ export function drawWorld(
   // Barrels.
   drawBarrel(ctx, W * 0.78, H * 0.8);
   drawBarrel(ctx, W * 0.82, H * 0.8);
-  // Placeholder "can" target marker at world center (Phase 3 will replace
-  // with real TargetManager sprites; drawn here so the slice has an aim goal).
-  const cx = W / 2;
-  const cy = H * 0.7;
-  ctx.fillStyle = '#c0392b';
-  ctx.fillRect(cx - 22, cy - 54, 44, 54);
-  ctx.fillStyle = '#ecf0f1';
-  ctx.fillRect(cx - 22, cy - 54, 44, 12);
-  ctx.strokeStyle = '#2c3e50';
-  ctx.lineWidth = 3;
-  ctx.strokeRect(cx - 22, cy - 54, 44, 54);
 
   // World border.
   ctx.strokeStyle = '#2c3e50';

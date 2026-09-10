@@ -5,10 +5,15 @@ import { DEFAULT_CONFIG, type GameConfig } from './core/Config.ts';
 import { DomGameLoop, type IGameLoop } from './core/GameLoop.ts';
 import { createInitialGameState, type GameState } from './core/GameState.ts';
 import { LOGICAL_HEIGHT, LOGICAL_WIDTH, ResizeHandler } from './core/ResizeHandler.ts';
+import type { Vec2 } from './core/types.ts';
 import { DomInputManager, type IInputSource } from './input/InputManager.ts';
+import { BACK_FORTY } from './levels/LevelDefinition.ts';
 import { CanvasRenderer } from './rendering/CanvasRenderer.ts';
 import type { IRenderer, RenderFrame } from './rendering/Renderer.ts';
+import { scoreForHit } from './targets/Scoring.ts';
+import { TargetManager } from './targets/TargetManager.ts';
 import { smoothingFactor } from './utils/math.ts';
+import type { Rng } from './utils/random.ts';
 
 // Game orchestrator: owns sim state (GameState, Camera, ScopeController) and
 // wires the engine seams (IInputSource, IGameLoop, IRenderer) together.
@@ -28,6 +33,8 @@ export class Game {
   readonly camera: Camera;
   readonly scope: ScopeController;
   readonly aim: AimController;
+  readonly targets: TargetManager;
+  private lastShot: RenderFrame['lastShot'] = null;
   private readonly input: IInputSource;
   private readonly renderer: IRenderer;
   private readonly loop: IGameLoop;
@@ -60,6 +67,7 @@ export class Game {
       x: this.config.world.width / 2,
       y: this.config.world.height / 2,
     });
+    this.targets = new TargetManager(BACK_FORTY, 8);
 
     this.resizer = new ResizeHandler(canvas, ctx);
     this.resizer.resize();
@@ -124,6 +132,63 @@ export class Game {
       pos.x + (smoothed.x - pos.x) * k,
       pos.y + (smoothed.y - pos.y) * k,
     );
+
+    // Restart works from any mode; firing only while playing.
+    while (this.input.consumeRestartPressed()) this.restartRound();
+    if (this.state.mode === 'playing') {
+      while (this.input.consumeFirePressed()) this.fireShot();
+    } else {
+      while (this.input.consumeFirePressed()) {
+        /* swallow clicks on the round-complete panel */
+      }
+    }
+  }
+
+  /**
+   * Shot resolution (proposal section 68): validate -> capture reticle ->
+   * dispersion -> impact -> hit query -> score/recoil -> decrement.
+   * Impact is computed from the FINAL reticle (smoothed + sway + recoil).
+   */
+  fireShot(rng: Rng = Math.random): void {
+    if (this.state.mode !== 'playing') return;
+    if (this.state.shotsRemaining <= 0) return;
+
+    const impact: Vec2 = this.aim.impactPoint(rng);
+    const found = this.targets.findHit(impact);
+    if (found) {
+      const res = this.targets.markHit(found, impact, this.elapsed);
+      this.state.streak += 1;
+      this.state.bestStreak = Math.max(this.state.bestStreak, this.state.streak);
+      const { points } = scoreForHit(found, this.state.streak, res.center);
+      this.state.score += points;
+      this.state.hits += 1;
+      this.lastShot = { impact, hit: true, points, center: res.center };
+    } else {
+      this.state.streak = 0;
+      this.lastShot = { impact, hit: false, points: 0, center: false };
+    }
+
+    // Recoil applies AFTER impact resolution — never moves this shot.
+    this.aim.applyShotEffects(rng);
+    this.state.shotsFired += 1;
+    this.state.shotsRemaining -= 1;
+    if (this.state.shotsRemaining <= 0) {
+      this.state.mode = 'roundComplete';
+    }
+  }
+
+  restartRound(seed: number = Date.now()): void {
+    const fresh = createInitialGameState(this.config.round.shots);
+    this.state.mode = fresh.mode;
+    this.state.score = 0;
+    this.state.shotsRemaining = fresh.shotsRemaining;
+    this.state.shotsFired = 0;
+    this.state.hits = 0;
+    this.state.streak = 0;
+    this.state.bestStreak = 0;
+    this.state.elapsedTime = 0;
+    this.targets.reset(seed);
+    this.lastShot = null;
   }
 
   /** Freeze current sim state into a renderer-agnostic frame and draw it. */
@@ -142,6 +207,15 @@ export class Game {
       stability: snap.stability,
       swayPixels: snap.swayPixels,
       spreadWorld: snap.spreadWorld,
+      targets: this.targets.all,
+      lastShot: this.lastShot ? { ...this.lastShot, impact: { ...this.lastShot.impact } } : null,
+      hud: {
+        mode: this.state.mode,
+        score: this.state.score,
+        shotsRemaining: this.state.shotsRemaining,
+        shotsTotal: this.config.round.shots,
+        streak: this.state.streak,
+      },
       zoom: this.scope.zoom,
       zoomLevels: this.scope.levels,
       fps: this.loop.fps,

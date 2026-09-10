@@ -1,4 +1,6 @@
 import type { CameraSnapshot } from '../camera/Camera.ts';
+import type { GameMode } from '../core/GameState.ts';
+import type { ActiveTarget } from '../targets/TargetDefinitions.ts';
 import type { Vec2 } from '../core/types.ts';
 
 // Renderer seam: the sim produces an immutable RenderFrame every tick; any
@@ -26,6 +28,17 @@ export interface RenderFrame {
   swayPixels: number;
   /** Current hidden dispersion radius, world units. */
   spreadWorld: number;
+  /** Live targets (references are read-only for renderers). */
+  targets: readonly ActiveTarget[];
+  /** Last resolved shot, if any this round. */
+  lastShot: { impact: Vec2; hit: boolean; points: number; center: boolean } | null;
+  hud: {
+    mode: GameMode;
+    score: number;
+    shotsRemaining: number;
+    shotsTotal: number;
+    streak: number;
+  };
   zoom: number;
   zoomLevels: number[];
   fps: number;

@@ -14,6 +14,10 @@ export interface IInputSource {
   consumeZoomOut(): boolean;
   /** Consume one pending debug-overlay toggle (F1). */
   consumeDebugToggle(): boolean;
+  /** Consume one pending shot (left click). */
+  consumeFirePressed(): boolean;
+  /** Consume one pending round restart (R). */
+  consumeRestartPressed(): boolean;
 }
 
 export class DomInputManager implements IInputSource {
@@ -21,6 +25,8 @@ export class DomInputManager implements IInputSource {
   private zoomInSteps = 0;
   private zoomOutSteps = 0;
   private debugToggles = 0;
+  private firePresses = 0;
+  private restartPresses = 0;
   private detachFns: Array<() => void> = [];
 
   constructor(
@@ -52,16 +58,23 @@ export class DomInputManager implements IInputSource {
         this.zoomInSteps += 1;
       } else if (e.key === 'x' || e.key === 'X') {
         this.zoomOutSteps += 1;
+      } else if (e.key === 'r' || e.key === 'R') {
+        this.restartPresses += 1;
       }
+    };
+    const onFire = (e: MouseEvent): void => {
+      if (e.button === 0) this.firePresses += 1;
     };
     window.addEventListener('mousemove', onMove);
     // { passive: false } so preventDefault() stops page scroll on wheel zoom.
     window.addEventListener('wheel', onWheel, { passive: false });
     window.addEventListener('keydown', onKey);
+    window.addEventListener('mousedown', onFire);
     this.detachFns = [
       () => window.removeEventListener('mousemove', onMove),
       () => window.removeEventListener('wheel', onWheel),
       () => window.removeEventListener('keydown', onKey),
+      () => window.removeEventListener('mousedown', onFire),
     ];
   }
 
@@ -89,6 +102,22 @@ export class DomInputManager implements IInputSource {
   consumeDebugToggle(): boolean {
     if (this.debugToggles > 0) {
       this.debugToggles -= 1;
+      return true;
+    }
+    return false;
+  }
+
+  consumeFirePressed(): boolean {
+    if (this.firePresses > 0) {
+      this.firePresses -= 1;
+      return true;
+    }
+    return false;
+  }
+
+  consumeRestartPressed(): boolean {
+    if (this.restartPresses > 0) {
+      this.restartPresses -= 1;
       return true;
     }
     return false;
