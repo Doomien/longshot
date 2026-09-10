@@ -18,6 +18,7 @@ owner: K_St_Games Team
 - Product proposal complete and documented (86 sections)
 - Project document set landed (AGENTS, README, STATUS, CURRENT_TASK, vision, architecture, roadmap, feature index)
 - Phase 0 skeleton implemented on `feat/phase-0-skeleton` (Vite+TS, loop, input, camera, scope mask, F1 overlay; 10 tests green, build clean — browser playtest pending)
+- Phase 2 aim feel implemented (AimController, sway, stability, recoil, dispersion; 24 tests green — browser playtest pending)
 
 ## Next
 - **Vertical Slice (Phase 0):** Vite + TypeScript scaffold, Canvas game loop, input, camera with scope masking, reticle, zoom, aim smoothing, sway, stability, one target, one shot, one hit reaction

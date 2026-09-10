@@ -12,10 +12,20 @@ export interface RenderFrame {
   camera: CameraSnapshot;
   worldWidth: number;
   worldHeight: number;
-  /** Scope/aim point in logical screen coords (1920x1080). */
+  /** Raw mouse point in logical screen coords (input intent, pre-smoothing). */
   aimScreen: Vec2;
-  /** Same point resolved to world coords (authoritative for gameplay). */
+  /** Raw mouse point resolved to world coords. */
   aimWorld: Vec2;
+  /** Visible reticle in logical screen coords (smoothed + sway + recoil). */
+  reticleScreen: Vec2;
+  /** Visible reticle in world coords — the point shots resolve from. */
+  reticleWorld: Vec2;
+  /** Settling state 0..1 (1 = fully settled). */
+  stability: number;
+  /** Current sway amplitude, screen pixels. */
+  swayPixels: number;
+  /** Current hidden dispersion radius, world units. */
+  spreadWorld: number;
   zoom: number;
   zoomLevels: number[];
   fps: number;

@@ -14,8 +14,10 @@ export function scopeRadius(viewportHeight: number): number {
 export function drawScope(ctx: CanvasRenderingContext2D, frame: RenderFrame): void {
   const w = frame.camera.viewportWidth;
   const h = frame.camera.viewportHeight;
-  const cx = frame.aimScreen.x;
-  const cy = frame.aimScreen.y;
+  // The optic is centered on the VISIBLE reticle (smoothed + sway + recoil),
+  // not the raw mouse — the player sees exactly where the shot will go.
+  const cx = frame.reticleScreen.x;
+  const cy = frame.reticleScreen.y;
   const r = scopeRadius(h);
 
   // Darken everything outside the optic.

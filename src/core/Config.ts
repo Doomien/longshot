@@ -9,12 +9,21 @@ export interface AimConfig {
   swaySpeed: number;
   movementInstability: number;
   stabilityRecovery: number;
+  /** Sway amplitude multiplier at zero stability (1.0 -> 2x base sway). */
+  instabilitySwayMultiplier: number;
 }
 
 export interface ShootingConfig {
   baseDispersion: number;
+  /** Extra spread at zero stability, as a multiple of baseDispersion. */
+  stabilitySpreadFactor: number;
   recoilKick: number;
-  recoilDecay: number;
+  /** Random sideways recoil, screen pixels (stddev). */
+  recoilSideVariance: number;
+  /** Exponential recoil recovery rate (1/s). */
+  recoilDecayRate: number;
+  /** Stability multiplier applied when a shot is fired. */
+  postShotStability: number;
 }
 
 export interface ScopeConfig {
@@ -52,11 +61,15 @@ export const DEFAULT_CONFIG: GameConfig = {
     swaySpeed: 1,
     movementInstability: 0.003,
     stabilityRecovery: 2.2,
+    instabilitySwayMultiplier: 1.0,
   },
   shooting: {
     baseDispersion: 1.5,
+    stabilitySpreadFactor: 1.0,
     recoilKick: 12,
-    recoilDecay: 0.86,
+    recoilSideVariance: 3,
+    recoilDecayRate: 7,
+    postShotStability: 0.55,
   },
   scope: {
     zoomLevels: [1, 2, 4],

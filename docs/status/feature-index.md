@@ -39,13 +39,13 @@ Lifecycle stages:
 
 | Feature | Stage | Notes |
 |---------|-------|-------|
-| Aim smoothing (follow inertia) | 💡 | Exponential: `1 - exp(-speed * dt)` |
-| Sine-wave sway | 💡 | Multi-sine for MVP |
+| Aim smoothing (follow inertia) | ✅ | AimController; frame-rate-independence test 2026-09-10 |
+| Sine-wave sway | ✅ | SwayModel multi-sine; deterministic + amplitude tests |
 | Smooth noise sway (future) | 💡 | Perlin/Simplex replacement |
-| Stability / settling | 💡 | Velocity penalizes, recovery restores |
-| Recoil (kick + decay) | 💡 | Gaussian side variance |
-| Gaussian dispersion | 💡 | Box-Muller, not uniform |
-| Final reticle = smoothed + sway + recoil | 💡 | |
+| Stability / settling | ✅ | StabilityModel; drain/recover/clamp tests |
+| Recoil (kick + decay) | ✅ | RecoilModel px kick + exp decay; kick/decay tests |
+| Gaussian dispersion | ✅ | Box-Muller via utils/random; seeded cluster test |
+| Final reticle = smoothed + sway + recoil | ✅ | AimController.snapshot; composition test |
 | Optional steady-aim (hold breath) | 💡 | Post-MVP if settling alone isn't enough |
 
 ## Targets

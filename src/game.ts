@@ -1,3 +1,4 @@
+import { AimController } from './aim/AimController.ts';
 import { Camera } from './camera/Camera.ts';
 import { ScopeController } from './camera/ScopeController.ts';
 import { DEFAULT_CONFIG, type GameConfig } from './core/Config.ts';
@@ -26,6 +27,7 @@ export class Game {
   readonly state: GameState;
   readonly camera: Camera;
   readonly scope: ScopeController;
+  readonly aim: AimController;
   private readonly input: IInputSource;
   private readonly renderer: IRenderer;
   private readonly loop: IGameLoop;
@@ -54,6 +56,10 @@ export class Game {
       this.config.scope.defaultZoom,
     );
     this.camera.setZoom(this.scope.zoom);
+    this.aim = new AimController(this.config, {
+      x: this.config.world.width / 2,
+      y: this.config.world.height / 2,
+    });
 
     this.resizer = new ResizeHandler(canvas, ctx);
     this.resizer.resize();
@@ -100,17 +106,23 @@ export class Game {
     while (this.input.consumeZoomOut()) zoomChanged = this.scope.zoomOut() || zoomChanged;
     if (zoomChanged) this.camera.setZoom(this.scope.zoom);
 
-    // Phase 0 pan model: mouse position across the screen maps proportionally
-    // across the world; the camera eases toward it frame-rate-independently.
-    // (Phase 2 replaces this with aim-follow + sway + stability.)
-    const aim = this.input.aimScreen;
-    const targetX = (aim.x / LOGICAL_WIDTH) * this.config.world.width;
-    const targetY = (aim.y / LOGICAL_HEIGHT) * this.config.world.height;
+    // Phase 2 aim pipeline: mouse position maps proportionally across the
+    // world (camera-independent desired point) -> follow inertia + sway +
+    // recoil in AimController -> camera eases toward the smoothed aim.
+    // Two-stage lag gives the scope visible weight; the reticle (not the
+    // raw cursor) is what the scope centers on and what shots resolve from.
+    const mouse = this.input.aimScreen;
+    const desiredWorld = {
+      x: (mouse.x / LOGICAL_WIDTH) * this.config.world.width,
+      y: (mouse.y / LOGICAL_HEIGHT) * this.config.world.height,
+    };
+    this.aim.update(dt, desiredWorld, this.scope.zoom);
+    const smoothed = this.aim.snapshot.smoothed;
     const k = smoothingFactor(this.config.camera.panSpeed, dt);
     const pos = this.camera.position;
     this.camera.setPosition(
-      pos.x + (targetX - pos.x) * k,
-      pos.y + (targetY - pos.y) * k,
+      pos.x + (smoothed.x - pos.x) * k,
+      pos.y + (smoothed.y - pos.y) * k,
     );
   }
 
@@ -118,12 +130,18 @@ export class Game {
   render(): void {
     const aimScreen = this.input.aimScreen;
     const aimWorld = this.camera.screenToWorld(aimScreen.x, aimScreen.y);
+    const snap = this.aim.snapshot;
     const frame: RenderFrame = {
       camera: this.camera.state,
       worldWidth: this.config.world.width,
       worldHeight: this.config.world.height,
       aimScreen,
       aimWorld,
+      reticleScreen: this.camera.worldToScreen(snap.finalReticle.x, snap.finalReticle.y),
+      reticleWorld: { ...snap.finalReticle },
+      stability: snap.stability,
+      swayPixels: snap.swayPixels,
+      spreadWorld: snap.spreadWorld,
       zoom: this.scope.zoom,
       zoomLevels: this.scope.levels,
       fps: this.loop.fps,
