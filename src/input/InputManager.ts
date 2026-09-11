@@ -26,6 +26,8 @@ export interface IInputSource {
   consumeRestartPressed(): boolean;
   /** Consume one pending mute toggle (M). */
   consumeMuteToggle(): boolean;
+  /** Consume a pending level-switch hotkey (1-9), or null. Zero-based index. */
+  consumeLevelHotkey(): number | null;
 }
 
 export class DomInputManager implements IInputSource {
@@ -36,6 +38,7 @@ export class DomInputManager implements IInputSource {
   private panelToggles = 0;
   private firePresses = 0;
   private deletePresses = 0;
+  private levelHotkey = -1;
   private restartPresses = 0;
   private mutePresses = 0;
   private mouseHeld = false;
@@ -87,6 +90,8 @@ export class DomInputManager implements IInputSource {
         this.restartPresses += 1;
       } else if (e.key === 'm' || e.key === 'M') {
         this.mutePresses += 1;
+      } else if (e.key >= '1' && e.key <= '9') {
+        this.levelHotkey = Number(e.key) - 1;
       }
     };
     const onFire = (e: MouseEvent): void => {
@@ -188,5 +193,12 @@ export class DomInputManager implements IInputSource {
       return true;
     }
     return false;
+  }
+
+  consumeLevelHotkey(): number | null {
+    if (this.levelHotkey < 0) return null;
+    const idx = this.levelHotkey;
+    this.levelHotkey = -1;
+    return idx;
   }
 }

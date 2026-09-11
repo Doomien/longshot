@@ -16,6 +16,7 @@ class StubInput implements IInputSource {
   private aim: Vec2 = { x: LOGICAL_WIDTH / 2, y: LOGICAL_HEIGHT / 2 };
   private fires = 0;
   private deletes = 0;
+  private levelKey = -1;
   private held = false;
 
   get aimScreen(): Vec2 {
@@ -51,6 +52,10 @@ class StubInput implements IInputSource {
     this.deletes += 1;
   }
 
+  pressLevel(index: number): void {
+    this.levelKey = index;
+  }
+
   consumeZoomIn(): boolean {
     return false;
   }
@@ -76,6 +81,12 @@ class StubInput implements IInputSource {
       return true;
     }
     return false;
+  }
+  consumeLevelHotkey(): number | null {
+    if (this.levelKey < 0) return null;
+    const k = this.levelKey;
+    this.levelKey = -1;
+    return k;
   }
   consumeRestartPressed(): boolean {
     return false;
@@ -254,5 +265,25 @@ describe('core loop spine', () => {
     const added = game.targets.all[before]!;
     expect(added.type).toBe('beerCan');
     expect(added.spawnIndex).toBeGreaterThanOrEqual(0);
+  });
+
+  it('switches levels directly and via hotkey with a fresh round', () => {
+    const { game, input, renderer } = makeGame();
+    game.restartRound(5);
+    expect(game.levelName).toBe('The Back Forty');
+    expect(game.switchLevel(0)).toBe(false); // already there
+    expect(game.switchLevel(9)).toBe(false); // out of range
+    expect(game.switchLevel(1)).toBe(true);
+    expect(game.levelName).toBe('The Portrait');
+    expect(game.targets.level.background).toBe('/assets/backgrounds/portrait.png');
+    expect(game.targets.remaining).toBe(8);
+    expect(game.state.mode).toBe('playing');
+    game.render();
+    expect(renderer.last.hud.levelName).toBe('The Portrait');
+
+    input.pressLevel(0);
+    game.update(1 / 60, 300);
+    expect(game.levelName).toBe('The Back Forty');
+    expect(game.state.shotsRemaining).toBe(10);
   });
 });

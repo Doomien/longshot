@@ -58,6 +58,9 @@ export interface RenderFrame {
     isNewBest: boolean;
     /** Scene-editor mode: renderers show markers + banner. */
     editing: boolean;
+    levelName: string;
+    levelIndex: number;
+    levelCount: number;
     nearestDistance: number | null;
   };
   zoom: number;

@@ -48,9 +48,10 @@ function drawHud(ctx: CanvasRenderingContext2D, frame: RenderFrame): void {
   ctx.fillText(`SCORE ${hud.score}`, 24, 60);
   ctx.fillText(hud.streak > 1 ? `STREAK x${hud.streak}` : '', 24, 100);
   ctx.fillText(hud.nearestDistance !== null ? `DIST ${hud.nearestDistance}` : '', 24, 140);
+  ctx.fillText(`${hud.levelIndex + 1}/${hud.levelCount} ${hud.levelName}`, 24, 180);
   if (hud.editing) {
     ctx.fillStyle = '#ffe66d';
-    ctx.fillText('EDIT MODE — drag to move · right-click deletes', 24, 180);
+    ctx.fillText('EDIT MODE — drag to move · right-click deletes', 24, 220);
   }
   ctx.textAlign = 'right';
   ctx.fillText(`SHOTS ${hud.shotsRemaining}/${hud.shotsTotal}`, 1896, 60);
@@ -111,7 +112,7 @@ function drawMenu(ctx: CanvasRenderingContext2D, frame: RenderFrame): void {
   ctx.font = '400 30px ui-monospace, Menlo, monospace';
   ctx.fillStyle = '#c9d6df';
   ctx.fillText('Move to scan — settle the reticle — time the sway — click to fire', cx, 520);
-  ctx.fillText('Wheel / Z/X zoom   ·   R restart   ·   M mute   ·   F1 debug   ·   ` dev tool', cx, 570);
+  ctx.fillText('Wheel / Z/X zoom   ·   1/2 level   ·   R restart   ·   M mute   ·   F1 debug   ·   ` dev tool', cx, 570);
   if (frame.hud.bestScore > 0) {
     ctx.fillStyle = '#ffe66d';
     ctx.fillText(`BEST ${frame.hud.bestScore}`, cx, 630);

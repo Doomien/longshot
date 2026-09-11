@@ -108,3 +108,33 @@ export const BACK_FORTY: LevelDefinition = {
     { x: 3100, y: 1100, distance: 480, allowedTypes: ['clayTarget', 'glassBottle'], scale: 0.75 },
   ],
 };
+
+/**
+ * Second range: portrait backdrop (hotkey 2). Spawn points sit on and
+ * around the face/shoulders — tune them live with the ` dev-tool drag.
+ * NOTE: needs public/assets/backgrounds/portrait.png (not yet committed);
+ * until it lands, the procedural fallback renders.
+ */
+export const PORTRAIT: LevelDefinition = {
+  id: 'portrait-01',
+  name: 'The Portrait',
+  background: '/assets/backgrounds/portrait.png',
+  worldWidth: 4096,
+  worldHeight: 2304,
+  startingCamera: { x: 2048, y: 1152 },
+  spawnPoints: [
+    { x: 1500, y: 700, distance: 200, allowedTypes: ['beerCan', 'tinCan'] },
+    { x: 2600, y: 700, distance: 200, allowedTypes: ['beerCan', 'glassBottle'] },
+    { x: 1150, y: 1050, distance: 240, allowedTypes: ['glassBottle'] },
+    { x: 2950, y: 1050, distance: 240, allowedTypes: ['beerCan', 'tinCan'] },
+    { x: 1700, y: 1150, distance: 280, allowedTypes: ['metalPlate', 'clayTarget'] },
+    { x: 2400, y: 1150, distance: 280, allowedTypes: ['metalPlate'] },
+    { x: 2048, y: 900, distance: 320, allowedTypes: ['clayTarget'], scale: 0.85 },
+    { x: 1300, y: 1600, distance: 220, allowedTypes: ['beerCan', 'metalPlate'] },
+    { x: 2800, y: 1600, distance: 220, allowedTypes: ['tinCan', 'glassBottle'] },
+    { x: 2048, y: 1750, distance: 260, allowedTypes: ['beerCan'] },
+  ],
+};
+
+/** All shipped ranges, in hotkey order (1, 2, …). */
+export const LEVELS: LevelDefinition[] = [BACK_FORTY, PORTRAIT];

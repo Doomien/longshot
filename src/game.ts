@@ -9,7 +9,7 @@ import { loadSave, storeSave, type SaveData } from './core/Persistence.ts';
 import { buildTelemetry, type ShotSample } from './core/Telemetry.ts';
 import type { Vec2 } from './core/types.ts';
 import { DomInputManager, type IInputSource } from './input/InputManager.ts';
-import { BACK_FORTY, cloneLevel, levelToJson, type LevelDefinition } from './levels/LevelDefinition.ts';
+import { BACK_FORTY, LEVELS, cloneLevel, levelToJson, type LevelDefinition } from './levels/LevelDefinition.ts';
 import { CanvasRenderer } from './rendering/CanvasRenderer.ts';
 import type { IRenderer, RenderFrame } from './rendering/Renderer.ts';
 import { scoreForHit, accuracyBonus, streakBonus } from './targets/Scoring.ts';
@@ -47,6 +47,7 @@ export class Game {
   readonly aim: AimController;
   targets: TargetManager;
   private level: LevelDefinition;
+  private levelIndex = 0;
   private editing = false;
   private dragTarget: ActiveTarget | null = null;
   private readonly particles = new ParticleSystem();
@@ -97,8 +98,8 @@ export class Game {
       y: this.config.world.height / 2,
     });
     // The game owns a private clone: dev-tool scene edits never touch the
-    // shared BACK_FORTY default (resetScene() restores it).
-    this.level = cloneLevel(BACK_FORTY);
+    // shared level defaults (resetScene() restores the current one).
+    this.level = cloneLevel(LEVELS[this.levelIndex] ?? BACK_FORTY);
     this.targets = new TargetManager(this.level, 8);
     this.panel = new TuningPanel(this.config, {
       isEditing: () => this.isEditing(),
@@ -190,6 +191,12 @@ export class Game {
     let wantsRestart = false;
     while (this.input.consumeRestartPressed()) wantsRestart = true;
     while (this.input.consumeMuteToggle()) this.audio.toggleMute();
+    let levelKey: number | null = null;
+    while (true) {
+      const k = this.input.consumeLevelHotkey();
+      if (k === null) break;
+      levelKey = k;
+    }
 
     if (this.paused) {
       // Click resumes (swallowed, never fires); R restarts fresh.
@@ -206,6 +213,9 @@ export class Game {
     if (wantsRestart) {
       this.restartRound();
       return;
+    }
+    if (levelKey !== null && this.switchLevel(levelKey)) {
+      return; // fresh level + round; skip a stale frame
     }
 
     // Scene-editor mode: direct manipulation instead of firing. Clicks are
@@ -403,12 +413,28 @@ export class Game {
     return levelToJson(level);
   }
 
-  /** Restore the default scene and start a fresh round. */
+  /** Restore the current level default and start a fresh round. */
   resetScene(): void {
-    this.level = cloneLevel(BACK_FORTY);
+    this.level = cloneLevel(LEVELS[this.levelIndex] ?? BACK_FORTY);
     this.targets = new TargetManager(this.level, 8);
     this.dragTarget = null;
     this.restartRound();
+  }
+
+  /** Hotkey level switch (1, 2, …): fresh scene + fresh round. */
+  switchLevel(index: number): boolean {
+    if (index < 0 || index >= LEVELS.length || index === this.levelIndex) return false;
+    this.levelIndex = index;
+    this.level = cloneLevel(LEVELS[index]!);
+    this.targets = new TargetManager(this.level, 8);
+    this.dragTarget = null;
+    this.paused = false;
+    this.restartRound();
+    return true;
+  }
+
+  get levelName(): string {
+    return this.level.name;
   }
 
   /** Scene-editor mode switch (also on the ` panel). */
@@ -490,6 +516,9 @@ export class Game {
         centerHits: this.centerHits,
         isNewBest: this.isNewBest,
         editing: this.editing,
+        levelName: this.level.name,
+        levelIndex: this.levelIndex,
+        levelCount: LEVELS.length,
         nearestDistance: nearestTargetDistance(this.targets.all, snap.finalReticle),
       },
       zoom: this.scope.zoom,

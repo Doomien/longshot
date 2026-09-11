@@ -61,6 +61,7 @@ function makeFrame(debugVisible = false): RenderFrame {
       mode: 'playing', score: 0, shotsRemaining: 10, shotsTotal: 10, streak: 0, muted: false,
       paused: false, accuracy: 0, hits: 0, bestStreak: 0, bestScore: 0, roundBonus: 0,
       roundStreakBonus: 0, centerHits: 0, isNewBest: false, editing: false,
+      levelName: 'The Back Forty', levelIndex: 0, levelCount: 2,
       nearestDistance: null,
     },
     zoom: 2,

@@ -8,6 +8,21 @@ import type { RenderFrame } from './Renderer.ts';
 
 let bgCache: { src: string; img: HTMLImageElement; ready: boolean } | null = null;
 
+/**
+ * Cover-fit rect: scale the image to fill (W,H), centered crop. Pure math
+ * (world units in, world units out) so it unit-tests without an Image.
+ */
+export function coverDrawRect(
+  imgW: number,
+  imgH: number,
+  W: number,
+  H: number,
+): { dx: number; dy: number; dw: number; dh: number } {
+  const s = Math.max(W / imgW, H / imgH);
+  const dw = imgW * s;
+  const dh = imgH * s;
+  return { dx: (W - dw) / 2, dy: (H - dh) / 2, dw, dh };
+}
 function backgroundImage(src: string | null): HTMLImageElement | null {
   if (!src || typeof Image === 'undefined') return null;
   if (!bgCache || bgCache.src !== src) {
@@ -96,9 +111,11 @@ export function drawWorld(
   drawBarrel(ctx, W * 0.82, H * 0.8);
 
   // Committed art covers the procedural base once loaded (fallback stays).
+  // Cover-fit: the image fills the world rect, cropped — never stretched.
   const bg = backgroundImage(frame.background);
-  if (bg) {
-    ctx.drawImage(bg, 0, 0, W, H);
+  if (bg && bg.width > 0 && bg.height > 0) {
+    const r = coverDrawRect(bg.width, bg.height, W, H);
+    ctx.drawImage(bg, r.dx, r.dy, r.dw, r.dh);
   }
 
   // World border.

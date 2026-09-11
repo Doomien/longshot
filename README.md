@@ -69,6 +69,7 @@ npm test           # Unit tests (vitest)
 Mouse Move   Scan / aim
 Left Click   Fire (menu: click to start)
 Wheel / Z/X  Zoom 1x / 2x / 4x
+1/2          Switch level (Back Forty / Portrait)
 R            Restart round
 M            Mute
 F1           Debug overlay (FPS, camera, reticle, stability, hitboxes)
