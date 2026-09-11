@@ -12,64 +12,64 @@ kind: roadmap
 ### Phase 0 — Skeleton
 **Exit criterion:** A cursor-controlled camera can pan across a placeholder background.
 
-- [ ] Vite + TypeScript scaffold
-- [ ] Canvas setup
-- [ ] Game loop (`requestAnimationFrame`)
-- [ ] Resize handling
-- [ ] Input manager (mouse move, click, wheel)
-- [ ] Debug overlay (F1: FPS, camera, cursor, stability, sway)
-- [ ] Frame-rate independent update loop
+- [x] Vite + TypeScript scaffold
+- [x] Canvas setup
+- [x] Game loop (`requestAnimationFrame`)
+- [x] Resize handling
+- [x] Input manager (mouse move, click, wheel)
+- [x] Debug overlay (F1: FPS, camera, cursor, stability, sway)
+- [x] Frame-rate independent update loop
 
 ### Phase 1 — Scope Prototype
 **Exit criterion:** Player can smoothly inspect the environment through a working optic.
 
-- [ ] Scope mask (circle clipping)
-- [ ] Reticle rendering
-- [ ] Camera transform (pan, zoom)
-- [ ] 3 zoom levels (1×, 2×, 4×)
-- [ ] Mouse wheel zoom control
-- [ ] Screen/world coordinate conversion
+- [x] Scope mask (circle clipping)
+- [x] Reticle rendering
+- [x] Camera transform (pan, zoom)
+- [x] 3 zoom levels (1×, 2×, 4×)
+- [x] Mouse wheel zoom control
+- [x] Screen/world coordinate conversion
 
 ### Phase 2 — Aim Feel
 **Exit criterion:** Merely moving and settling the reticle feels satisfying.
 
-- [ ] Aim smoothing (follow inertia)
-- [ ] Sway model (multi-sine waves)
-- [ ] Stability / settling mechanic
-- [ ] Recoil (kick + decay)
-- [ ] Gaussian dispersion
-- [ ] Final reticle calculation
+- [x] Aim smoothing (follow inertia)
+- [x] Sway model (multi-sine waves)
+- [x] Stability / settling mechanic
+- [x] Recoil (kick + decay)
+- [x] Gaussian dispersion
+- [x] Final reticle calculation
 
 ### Phase 3 — Targets
 **Exit criterion:** Player can shoot stationary cans with correct hit detection.
 
-- [ ] Target data definitions (beer can, bottle, metal plate)
-- [ ] Sprite rendering
-- [ ] Spawn points system
-- [ ] Hitboxes (rectangular/elliptical)
-- [ ] Shot resolution
-- [ ] Target hit/miss detection
+- [x] Target data definitions (beer can, bottle, metal plate)
+- [x] Sprite rendering
+- [x] Spawn points system
+- [x] Hitboxes (rectangular/elliptical)
+- [x] Shot resolution
+- [x] Target hit/miss detection
 
 ### Phase 4 — Feedback
 **Exit criterion:** A hit feels good.
 
-- [ ] Target reactions (tumble, rotation, gravity)
-- [ ] Particle system (dust, sparks, shatter)
-- [ ] Impact effects
-- [ ] Sound (fire, metal ping, glass break, dirt)
-- [ ] Screen shake
-- [ ] Score popups
+- [x] Target reactions (tumble, rotation, gravity)
+- [x] Particle system (dust, sparks, shatter)
+- [x] Impact effects
+- [x] Sound (fire, metal ping, glass break, dirt)
+- [x] Screen shake
+- [x] Score popups
 
 ### Phase 5 — Game Loop
 **Exit criterion:** Complete replayable 10-shot game exists.
 
-- [ ] Shots remaining counter
-- [ ] Score + streak system
-- [ ] Round start screen
-- [ ] Round complete screen
-- [ ] Restart
-- [ ] Best score persistence (localStorage)
-- [ ] Pause on tab visibility change
+- [x] Shots remaining counter
+- [x] Score + streak system
+- [x] Round start screen
+- [x] Round complete screen
+- [x] Restart
+- [x] Best score persistence (localStorage)
+- [x] Pause on tab visibility change
 
 ### Phase 6 — Art Pass
 **Exit criterion:** Polished, shippable first level.
@@ -85,21 +85,21 @@ kind: roadmap
 
 | Feature | Status |
 |---------|--------|
-| One level with large background | ⏳ Phase 6 |
-| Beer can, bottle, metal plate targets | ⏳ Phase 3 |
-| Mouse aiming with smooth follow | ⏳ Phase 2 |
-| Sine-wave sway | ⏳ Phase 2 |
-| Stability/settling system | ⏳ Phase 2 |
-| 3 zoom levels (1×, 2×, 4×) | ⏳ Phase 1 |
-| 10-shot rounds | ⏳ Phase 5 |
-| Hit detection | ⏳ Phase 3 |
-| Scoring + streaks | ⏳ Phase 5 |
-| Recoil | ⏳ Phase 2 |
-| Target reactions (tumble) | ⏳ Phase 4 |
-| Basic particles | ⏳ Phase 4 |
-| Sound effects | ⏳ Phase 4 |
-| Round-complete screen | ⏳ Phase 5 |
-| Local best score | ⏳ Phase 5 |
+| One level with large background | ⚗️ Prototype (SVG placeholder; final art Phase 6) |
+| Beer can, bottle, metal plate targets | ✅ Done |
+| Mouse aiming with smooth follow | ✅ Done |
+| Sine-wave sway | ✅ Done |
+| Stability/settling system | ✅ Done |
+| 3 zoom levels (1×, 2×, 4×) | ✅ Done |
+| 10-shot rounds | ✅ Done |
+| Hit detection | ✅ Done |
+| Scoring + streaks | ✅ Done |
+| Recoil | ✅ Done |
+| Target reactions (tumble) | ✅ Done |
+| Basic particles | ✅ Done |
+| Sound effects | ✅ Done (procedural; polish Phase 6) |
+| Round-complete screen | ✅ Done |
+| Local best score | ✅ Done |
 
 ## Explicit MVP Non-Goals
 

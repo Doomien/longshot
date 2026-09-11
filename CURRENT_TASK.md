@@ -12,25 +12,27 @@ kind: status
 
 ---
 
-## Active Work — Project Setup & Foundation
+## Active Work — Review Feedback + Pre-Art Hardening
 
 ### Completed
-- Product proposal authored (`longshot_target_practice_product_proposal.md`) — 86 sections covering all design, mechanics, architecture, and implementation guidance.
-- Repository initialized (`.git`, `LICENSE`, `.gitignore`).
-- Project documents landed: `AGENTS.md`, `README.md`, `STATUS.md`, `CURRENT_TASK.md`.
-- Docs created: `docs/vision/VISION.md`, `docs/architecture/overview.md`, `docs/roadmaps/mvp-roadmap.md`, `docs/status/feature-index.md`.
+- MVP slice Phases 0–5 on `feat/phase-0-skeleton` (menu → 10 shots → results → R; 45+ tests green, build clean, dev serves 200).
+- Tracking docs current: `feature-index.md`, `STATUS.md` (Gate 1), roadmap Phases 0–5 checked.
 
 ### Current
-- Ready for agentic implementation handoff.
+- Attend to `docs/reviews/2026-09-11-initial-implementation-review.md` (spine test, dead files, audio, scoring detail, placeholder art).
 
-### Next Up (Implementation Agent A — Core/Camera)
-1. Initialize Vite + TypeScript project scaffold
-2. Canvas setup, game loop, resize handling
-3. Input manager
-4. Camera transform with pan and zoom
-5. Scope clipping mask + reticle rendering
-6. Coordinate conversion helpers
-7. Debug overlay (F1 toggle)
+### Next Up (Phase 6 — Art Pass)
+1. Final background illustration (replaces SVG placeholder)
+2. Final target sprites (replaces procedural)
+3. In-browser playtest + aim tuning via F2 panel
+4. Audio polish (asset SFX or synth refinement)
+
+### Next Up (remaining review + pre-art items)
+1. Spine integration test (`src/game.test.ts`)
+2. Delete dead `types/canvas.ts`; use `coordinates.ts` helpers
+3. Audio: jitter everywhere + echo send
+4. Results: center-hit count + streak bonus
+5. Placeholder background asset + loader
 
 ### Working Rules
 - See [AGENTS.md](AGENTS.md) for full working rules, subsystem ownership, and standing constraints.
