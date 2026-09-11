@@ -11,14 +11,16 @@ let bgCache: { src: string; img: HTMLImageElement; ready: boolean } | null = nul
 /**
  * Cover-fit rect: scale the image to fill (W,H), centered crop. Pure math
  * (world units in, world units out) so it unit-tests without an Image.
+ * `scale` shrinks (<1) or enlarges (>1) the art relative to cover, centered.
  */
 export function coverDrawRect(
   imgW: number,
   imgH: number,
   W: number,
   H: number,
+  scale = 1,
 ): { dx: number; dy: number; dw: number; dh: number } {
-  const s = Math.max(W / imgW, H / imgH);
+  const s = Math.max(W / imgW, H / imgH) * scale;
   const dw = imgW * s;
   const dh = imgH * s;
   return { dx: (W - dw) / 2, dy: (H - dh) / 2, dw, dh };
@@ -114,7 +116,7 @@ export function drawWorld(
   // Cover-fit: the image fills the world rect, cropped — never stretched.
   const bg = backgroundImage(frame.background);
   if (bg && bg.width > 0 && bg.height > 0) {
-    const r = coverDrawRect(bg.width, bg.height, W, H);
+    const r = coverDrawRect(bg.width, bg.height, W, H, frame.backgroundScale ?? 1);
     ctx.drawImage(bg, r.dx, r.dy, r.dw, r.dh);
   }
 

@@ -46,6 +46,14 @@ describe('coverDrawRect', () => {
   it('is exact for matching aspect ratios', () => {
     expect(coverDrawRect(1920, 1080, 1920, 1080)).toEqual({ dx: 0, dy: 0, dw: 1920, dh: 1080 });
   });
+
+  it('scales relative to cover (quarter-size portrait)', () => {
+    const r = coverDrawRect(1254, 1254, 4096, 2304, 0.25);
+    expect(r.dw).toBeCloseTo(1024);
+    expect(r.dh).toBeCloseTo(1024);
+    expect(r.dx).toBeCloseTo((4096 - 1024) / 2);
+    expect(r.dy).toBeCloseTo((2304 - 1024) / 2);
+  });
 });
 
 describe('drawWorld', () => {
@@ -55,6 +63,7 @@ describe('drawWorld', () => {
       worldWidth: 4096,
       worldHeight: 2304,
       background: '/assets/backgrounds/portrait.png',
+      backgroundScale: 0.25,
     } as RenderFrame;
     const ctx = stubCtx();
     expect(() => drawWorld(ctx, frame)).not.toThrow();

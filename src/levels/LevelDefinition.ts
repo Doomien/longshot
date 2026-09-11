@@ -10,6 +10,8 @@ export interface LevelDefinition {
   name: string;
   /** Committed art under public/ (served at root); null = procedural only. */
   background: string | null;
+  /** Art scale relative to cover-fit (1 = fill world, 0.25 = quarter, centered). */
+  backgroundScale?: number;
   worldWidth: number;
   worldHeight: number;
   spawnPoints: TargetSpawnPoint[];
@@ -48,6 +50,13 @@ export function levelFromJson(text: string): LevelDefinition {
   if (typeof name !== 'string' || name.length === 0) throw new Error('Level needs a string name');
   if (background !== null && typeof background !== 'string') {
     throw new Error('Level background must be a string path or null');
+  }
+  const { backgroundScale } = parsed;
+  if (
+    backgroundScale !== undefined &&
+    (!isFiniteNumber(backgroundScale) || backgroundScale <= 0)
+  ) {
+    throw new Error('Level backgroundScale must be a positive number');
   }
   if (!isFiniteNumber(worldWidth) || worldWidth <= 0) throw new Error('Level needs a positive worldWidth');
   if (!isFiniteNumber(worldHeight) || worldHeight <= 0) throw new Error('Level needs a positive worldHeight');
@@ -119,20 +128,22 @@ export const PORTRAIT: LevelDefinition = {
   id: 'portrait-01',
   name: 'The Portrait',
   background: '/assets/backgrounds/portrait.png',
+  backgroundScale: 0.25,
   worldWidth: 4096,
   worldHeight: 2304,
   startingCamera: { x: 2048, y: 1152 },
+  // Quarter-scale art centers on a 1024x1024 frame (x 1536-2560, y 640-1664).
   spawnPoints: [
-    { x: 1500, y: 700, distance: 200, allowedTypes: ['beerCan', 'tinCan'] },
-    { x: 2600, y: 700, distance: 200, allowedTypes: ['beerCan', 'glassBottle'] },
-    { x: 1150, y: 1050, distance: 240, allowedTypes: ['glassBottle'] },
-    { x: 2950, y: 1050, distance: 240, allowedTypes: ['beerCan', 'tinCan'] },
-    { x: 1700, y: 1150, distance: 280, allowedTypes: ['metalPlate', 'clayTarget'] },
-    { x: 2400, y: 1150, distance: 280, allowedTypes: ['metalPlate'] },
-    { x: 2048, y: 900, distance: 320, allowedTypes: ['clayTarget'], scale: 0.85 },
-    { x: 1300, y: 1600, distance: 220, allowedTypes: ['beerCan', 'metalPlate'] },
-    { x: 2800, y: 1600, distance: 220, allowedTypes: ['tinCan', 'glassBottle'] },
-    { x: 2048, y: 1750, distance: 260, allowedTypes: ['beerCan'] },
+    { x: 1750, y: 800, distance: 200, allowedTypes: ['beerCan', 'tinCan'] },
+    { x: 2350, y: 800, distance: 200, allowedTypes: ['beerCan', 'glassBottle'] },
+    { x: 1600, y: 1050, distance: 240, allowedTypes: ['glassBottle'] },
+    { x: 2500, y: 1050, distance: 240, allowedTypes: ['beerCan', 'tinCan'] },
+    { x: 1850, y: 1150, distance: 280, allowedTypes: ['metalPlate', 'clayTarget'] },
+    { x: 2250, y: 1150, distance: 280, allowedTypes: ['metalPlate'] },
+    { x: 2048, y: 950, distance: 320, allowedTypes: ['clayTarget'], scale: 0.85 },
+    { x: 1650, y: 1450, distance: 220, allowedTypes: ['beerCan', 'metalPlate'] },
+    { x: 2450, y: 1450, distance: 220, allowedTypes: ['tinCan', 'glassBottle'] },
+    { x: 2048, y: 1550, distance: 260, allowedTypes: ['beerCan'] },
   ],
 };
 

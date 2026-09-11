@@ -109,6 +109,10 @@ export class Game {
       setBackground: (path: string | null) => {
         this.level.background = path && path.length > 0 ? path : null;
       },
+      getBackgroundScale: () => this.level.backgroundScale ?? 1,
+      setBackgroundScale: (scale: number) => {
+        this.level.backgroundScale = scale;
+      },
       exportSceneJson: () => this.exportSceneJson(),
       resetScene: () => this.resetScene(),
     });
@@ -488,6 +492,7 @@ export class Game {
       worldWidth: this.config.world.width,
       worldHeight: this.config.world.height,
       background: this.targets.level.background,
+      backgroundScale: this.targets.level.backgroundScale ?? 1,
       aimScreen,
       aimWorld,
       reticleScreen: worldToScreen(this.camera, snap.finalReticle.x, snap.finalReticle.y),

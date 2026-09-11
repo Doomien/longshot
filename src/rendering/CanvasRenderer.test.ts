@@ -46,6 +46,7 @@ function makeFrame(debugVisible = false): RenderFrame {
     worldWidth: 4096,
     worldHeight: 2304,
     background: null,
+    backgroundScale: 1,
     aimScreen: { x: 960, y: 540 },
     aimWorld: { x: 2048, y: 1152 },
     reticleScreen: { x: 960, y: 540 },

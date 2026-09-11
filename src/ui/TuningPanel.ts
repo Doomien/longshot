@@ -15,6 +15,8 @@ export interface SceneHooks {
   addTargetAtReticle(type: TargetType): void;
   getBackground(): string | null;
   setBackground(path: string | null): void;
+  getBackgroundScale(): number;
+  setBackgroundScale(scale: number): void;
   exportSceneJson(): string;
   resetScene(): void;
 }
@@ -232,7 +234,7 @@ export class TuningPanel {
     box.appendChild(addRow);
 
     const bgLabel = document.createElement('div');
-    bgLabel.textContent = 'Background path (under public/)';
+    bgLabel.textContent = 'Background path (under public/) + scale';
     const bgRow = document.createElement('div');
     bgRow.style.display = 'flex';
     bgRow.style.gap = '6px';
@@ -242,17 +244,29 @@ export class TuningPanel {
     bgInput.value = hooks.getBackground() ?? '';
     bgInput.placeholder = '/assets/backgrounds/back-forty.svg';
     bgInput.style.flex = '1';
-    const bgBtn = document.createElement('button');
-    bgBtn.textContent = 'Apply';
+    const scaleInput = document.createElement('input');
+    scaleInput.type = 'number';
+    scaleInput.min = '0.05';
+    scaleInput.max = '2';
+    scaleInput.step = '0.05';
+    scaleInput.title = 'Art scale relative to cover-fit';
+    scaleInput.style.width = '64px';
     const refreshBg = (): void => {
       bgInput.value = hooks.getBackground() ?? '';
+      scaleInput.value = String(hooks.getBackgroundScale());
     };
+    refreshBg();
+    const bgBtn = document.createElement('button');
+    bgBtn.textContent = 'Apply';
     bgBtn.addEventListener('click', () => {
       const v = bgInput.value.trim();
       hooks.setBackground(v.length > 0 ? v : null);
+      const s = Number(scaleInput.value);
+      if (Number.isFinite(s) && s > 0) hooks.setBackgroundScale(s);
       refreshBg();
     });
     bgRow.appendChild(bgInput);
+    bgRow.appendChild(scaleInput);
     bgRow.appendChild(bgBtn);
     box.appendChild(bgLabel);
     box.appendChild(bgRow);

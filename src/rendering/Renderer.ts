@@ -18,6 +18,8 @@ export interface RenderFrame {
   worldHeight: number;
   /** Committed backdrop art path (public/), or null for procedural only. */
   background: string | null;
+  /** Art scale relative to cover-fit (1 = fill). */
+  backgroundScale: number;
   /** Raw mouse point in logical screen coords (input intent, pre-smoothing). */
   aimScreen: Vec2;
   /** Raw mouse point resolved to world coords. */

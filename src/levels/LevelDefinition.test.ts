@@ -30,5 +30,8 @@ describe('level JSON round-trip (data-driven scene groundwork)', () => {
     expect(() =>
       levelFromJson(JSON.stringify({ ...BACK_FORTY, worldWidth: -5 })),
     ).toThrow(/positive worldWidth/);
+    expect(() =>
+      levelFromJson(JSON.stringify({ ...BACK_FORTY, backgroundScale: -1 })),
+    ).toThrow(/backgroundScale/);
   });
 });
