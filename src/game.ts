@@ -9,12 +9,13 @@ import { loadSave, storeSave, type SaveData } from './core/Persistence.ts';
 import { buildTelemetry, type ShotSample } from './core/Telemetry.ts';
 import type { Vec2 } from './core/types.ts';
 import { DomInputManager, type IInputSource } from './input/InputManager.ts';
-import { BACK_FORTY } from './levels/LevelDefinition.ts';
+import { BACK_FORTY, cloneLevel, levelToJson, type LevelDefinition } from './levels/LevelDefinition.ts';
 import { CanvasRenderer } from './rendering/CanvasRenderer.ts';
 import type { IRenderer, RenderFrame } from './rendering/Renderer.ts';
 import { scoreForHit, accuracyBonus, streakBonus } from './targets/Scoring.ts';
 import { TargetManager } from './targets/TargetManager.ts';
 import type { ActiveTarget, TargetType } from './targets/TargetDefinitions.ts';
+import { TARGET_DEFINITIONS } from './targets/TargetDefinitions.ts';
 import { AudioManager, type SoundName } from './audio/AudioManager.ts';
 import { ParticleSystem } from './effects/ParticleSystem.ts';
 import { spawnHitBurst, spawnMissPuff } from './effects/ImpactEffects.ts';
@@ -22,7 +23,7 @@ import { ScorePopups } from './effects/ScorePopups.ts';
 import { ScreenShake } from './effects/ScreenShake.ts';
 import { updateTargetReactions } from './effects/TargetReactions.ts';
 import { TuningPanel } from './ui/TuningPanel.ts';
-import { smoothingFactor } from './utils/math.ts';
+import { smoothingFactor, clamp } from './utils/math.ts';
 import { screenToWorld, worldToScreen } from './utils/coordinates.ts';
 import type { Rng } from './utils/random.ts';
 
@@ -44,7 +45,10 @@ export class Game {
   readonly camera: Camera;
   readonly scope: ScopeController;
   readonly aim: AimController;
-  readonly targets: TargetManager;
+  targets: TargetManager;
+  private level: LevelDefinition;
+  private editing = false;
+  private dragTarget: ActiveTarget | null = null;
   private readonly particles = new ParticleSystem();
   private readonly popups = new ScorePopups();
   private readonly shake = new ScreenShake();
@@ -92,8 +96,21 @@ export class Game {
       x: this.config.world.width / 2,
       y: this.config.world.height / 2,
     });
-    this.targets = new TargetManager(BACK_FORTY, 8);
-    this.panel = new TuningPanel(this.config);
+    // The game owns a private clone: dev-tool scene edits never touch the
+    // shared BACK_FORTY default (resetScene() restores it).
+    this.level = cloneLevel(BACK_FORTY);
+    this.targets = new TargetManager(this.level, 8);
+    this.panel = new TuningPanel(this.config, {
+      isEditing: () => this.isEditing(),
+      setEditing: (v: boolean) => this.setEditing(v),
+      addTargetAtReticle: (type: TargetType) => this.spawnTargetAtReticle(type),
+      getBackground: () => this.level.background,
+      setBackground: (path: string | null) => {
+        this.level.background = path && path.length > 0 ? path : null;
+      },
+      exportSceneJson: () => this.exportSceneJson(),
+      resetScene: () => this.resetScene(),
+    });
 
     // DOM wiring is skipped outside browsers (node tests inject all seams
     // via GameOptions and drive update()/render() directly).
@@ -191,6 +208,16 @@ export class Game {
       return;
     }
 
+    // Scene-editor mode: direct manipulation instead of firing. Clicks are
+    // swallowed (button-hold drives drags), right-click deletes.
+    if (this.editing) {
+      while (this.input.consumeFirePressed()) {
+        /* swallowed: the held button drives updateEditorDrag */
+      }
+      while (this.input.consumeDeletePressed()) this.deleteTargetAtMouse();
+      this.updateEditorDrag();
+    }
+
     // Phase 2 aim pipeline: mouse position maps proportionally across the
     // world (camera-independent desired point) -> follow inertia + sway +
     // recoil in AimController -> camera eases toward the smoothed aim.
@@ -225,7 +252,12 @@ export class Game {
     }
 
     // Feedback sim (proposal section 31 order: targets -> effects).
-    updateTargetReactions(this.targets.all, dt);
+    updateTargetReactions(
+      this.targets.all,
+      dt,
+      this.config.effects.gravity,
+      this.config.effects.reactionDamping,
+    );
     this.particles.update(dt);
     this.popups.update(dt);
     this.shake.update(dt);
@@ -296,6 +328,99 @@ export class Game {
     console.log('[longshot] round telemetry', buildTelemetry(this.shotLog, this.state.hits));
   }
 
+  /** Nearest live (unhit, active) target within maxDist world px, or null. */
+  private nearestLiveTarget(point: Vec2, maxDist: number): ActiveTarget | null {
+    let best: ActiveTarget | null = null;
+    let bestSq = maxDist * maxDist;
+    for (const t of this.targets.all) {
+      if (!t.active || t.hit) continue;
+      const dx = t.position.x - point.x;
+      const dy = t.position.y - point.y;
+      const dSq = dx * dx + dy * dy;
+      if (dSq < bestSq) {
+        bestSq = dSq;
+        best = t;
+      }
+    }
+    return best;
+  }
+
+  /** Scene-editor drag: held button moves the grabbed target (and its spawn point). */
+  private updateEditorDrag(): void {
+    const mouse = screenToWorld(this.camera, this.input.aimScreen.x, this.input.aimScreen.y);
+    if (!this.input.mouseDown) {
+      this.dragTarget = null;
+      return;
+    }
+    if (!this.dragTarget || !this.dragTarget.active || this.dragTarget.hit) {
+      this.dragTarget = this.nearestLiveTarget(mouse, 90);
+    }
+    if (this.dragTarget) {
+      const clamped = {
+        x: clamp(mouse.x, 0, this.config.world.width),
+        y: clamp(mouse.y, 0, this.config.world.height),
+      };
+      this.dragTarget.position = clamped;
+      const sp = this.level.spawnPoints[this.dragTarget.spawnIndex];
+      if (sp) {
+        sp.x = Math.round(clamped.x);
+        sp.y = Math.round(clamped.y);
+      }
+    }
+  }
+
+  /** Scene-editor delete: right-click removes the target under the cursor. */
+  private deleteTargetAtMouse(): void {    const mouse = screenToWorld(this.camera, this.input.aimScreen.x, this.input.aimScreen.y);
+    const found = this.nearestLiveTarget(mouse, 90);
+    if (found) {
+      found.active = false;
+      if (this.dragTarget === found) this.dragTarget = null;
+    }
+  }
+
+  /** Scene-editor add: spawn a target of the given type at the reticle. */
+  spawnTargetAtReticle(type: TargetType): void {
+    const r = this.aim.snapshot.finalReticle;
+    this.targets.spawn(type, {
+      x: clamp(r.x, 0, this.config.world.width),
+      y: clamp(r.y, 0, this.config.world.height),
+    });
+  }
+
+  /** Serialize current live scene (positions, types, background) as level JSON. */
+  exportSceneJson(): string {
+    const live = this.targets.all.filter((t) => t.active);
+    const level: LevelDefinition = {
+      ...cloneLevel(this.level),
+      spawnPoints: live.map((t) => ({
+        x: Math.round(t.position.x),
+        y: Math.round(t.position.y),
+        distance: t.distance,
+        allowedTypes: [t.type],
+        scale: Number((t.width / TARGET_DEFINITIONS[t.type].width).toFixed(3)),
+      })),
+    };
+    return levelToJson(level);
+  }
+
+  /** Restore the default scene and start a fresh round. */
+  resetScene(): void {
+    this.level = cloneLevel(BACK_FORTY);
+    this.targets = new TargetManager(this.level, 8);
+    this.dragTarget = null;
+    this.restartRound();
+  }
+
+  /** Scene-editor mode switch (also on the ` panel). */
+  setEditing(v: boolean): void {
+    this.editing = v;
+    this.dragTarget = null;
+  }
+
+  isEditing(): boolean {
+    return this.editing;
+  }
+
   restartRound(seed: number = Date.now()): void {
     const fresh = createInitialGameState(this.config.round.shots);
     this.state.mode = fresh.mode;
@@ -324,7 +449,7 @@ export class Game {
     const aimWorld = screenToWorld(this.camera, aimScreen.x, aimScreen.y);
     const snap = this.aim.snapshot;
     // Screen shake offsets the RENDER camera only — sim coords untouched.
-    const shakePx = this.shake.offset(this.elapsed);
+    const shakePx = this.shake.offset(this.elapsed, this.config.effects.shakeMaxPixels);
     const zoom = this.scope.zoom;
     const cam = this.camera.state;
     const shakenCamera = {
@@ -364,6 +489,7 @@ export class Game {
         roundStreakBonus: this.roundStreakBonus,
         centerHits: this.centerHits,
         isNewBest: this.isNewBest,
+        editing: this.editing,
         nearestDistance: nearestTargetDistance(this.targets.all, snap.finalReticle),
       },
       zoom: this.scope.zoom,

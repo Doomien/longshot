@@ -21,6 +21,7 @@ function makeTarget(overrides: Partial<ActiveTarget> = {}): ActiveTarget {
     height: 54,
     distance: 250,
     scoreValue: 100,
+    spawnIndex: 0,
     active: true,
     hit: false,
     hitAt: 0,

@@ -5,20 +5,24 @@ import type { ActiveTarget } from '../targets/TargetDefinitions.ts';
 // integrate gravity + motion and damp rotation so cans launch, spin, and
 // settle into the knocked pose the renderer draws.
 
-const GRAVITY = 1500;
 const GROUND_FRICTION = 0.92;
 
-export function updateTargetReactions(targets: readonly ActiveTarget[], dt: number): void {
+export function updateTargetReactions(
+  targets: readonly ActiveTarget[],
+  dt: number,
+  gravity = 1500,
+  dampingRate = 2.2,
+): void {
   if (dt <= 0) return;
   for (const t of targets) {
     if (!t.hit) continue;
     const r = t.reaction;
-    r.velocity.y += GRAVITY * dt;
+    r.velocity.y += gravity * dt;
     r.offset.x += r.velocity.x * dt;
     r.offset.y += r.velocity.y * dt;
     r.rotation += r.rotationVelocity * dt;
     // Bleed energy so motion settles instead of drifting forever.
-    const damp = Math.exp(-2.2 * dt);
+    const damp = Math.exp(-dampingRate * dt);
     r.velocity.x *= damp;
     r.rotationVelocity *= damp;
     // Floor: targets rest on the ground plane they were perched on.

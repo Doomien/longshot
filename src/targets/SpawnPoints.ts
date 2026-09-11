@@ -8,10 +8,17 @@ import { shuffle, type Rng } from '../utils/random.ts';
 // Re-exported so existing import sites (and tests) keep working.
 export { shuffle };
 
+export interface DealtSpawn {
+  point: TargetSpawnPoint;
+  /** Index into level.spawnPoints (for write-back editing). */
+  index: number;
+}
+
 export function selectSpawnPoints(
   level: LevelDefinition,
   count: number,
   rng: Rng = Math.random,
-): TargetSpawnPoint[] {
-  return shuffle(level.spawnPoints, rng).slice(0, Math.max(0, count));
+): DealtSpawn[] {
+  const indexed = level.spawnPoints.map((point, index) => ({ point, index }));
+  return shuffle(indexed, rng).slice(0, Math.max(0, count));
 }

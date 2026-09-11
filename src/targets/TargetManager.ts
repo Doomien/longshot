@@ -45,8 +45,8 @@ export class TargetManager {
 
   reset(seed: number): void {
     const rng = mulberry32(seed);
-    const points = selectSpawnPoints(this.levelDef, this.targetsPerRound, rng);
-    this.targets = points.map((p, i) => {
+    const dealt = selectSpawnPoints(this.levelDef, this.targetsPerRound, rng);
+    this.targets = dealt.map(({ point: p, index }, i) => {
       const type = pickType(p.allowedTypes, rng, i);
       const def = TARGET_DEFINITIONS[type];
       const scale = p.scale ?? 1;
@@ -58,6 +58,7 @@ export class TargetManager {
         height: def.height * scale,
         distance: p.distance,
         scoreValue: def.baseScore,
+        spawnIndex: index,
         active: true,
         hit: false,
         hitAt: 0,
@@ -74,6 +75,45 @@ export class TargetManager {
       if (t.active && !t.hit && pointInTarget(impact.x, impact.y, t)) return t;
     }
     return null;
+  }
+
+  /**
+   * Add a live target (scene editor): appends a spawn point to the level so
+   * the addition survives restarts and exports.
+   */
+  spawn(
+    type: TargetType,
+    position: Vec2,
+    opts: { distance?: number; scale?: number } = {},
+  ): ActiveTarget {
+    const def = TARGET_DEFINITIONS[type];
+    const scale = opts.scale ?? 1;
+    const distance = opts.distance ?? 240;
+    const spawnIndex =
+      this.levelDef.spawnPoints.push({
+        x: Math.round(position.x),
+        y: Math.round(position.y),
+        distance,
+        allowedTypes: [type],
+        scale,
+      }) - 1;
+    const target: ActiveTarget = {
+      id: `${type}_edit${spawnIndex}`,
+      type,
+      position: { x: position.x, y: position.y },
+      width: def.width * scale,
+      height: def.height * scale,
+      distance,
+      scoreValue: def.baseScore,
+      spawnIndex,
+      active: true,
+      hit: false,
+      hitAt: 0,
+      localImpact: { x: 0.5, y: 0.5 },
+      reaction: idleReaction(),
+    };
+    this.targets.push(target);
+    return target;
   }
 
   /** Record a hit with localized impact; returns center-hit flag. */

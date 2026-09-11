@@ -72,8 +72,12 @@ Wheel / Z/X  Zoom 1x / 2x / 4x
 R            Restart round
 M            Mute
 F1           Debug overlay (FPS, camera, reticle, stability, hitboxes)
-F2           Live tuning panel (sliders + export JSON)
+` (or F2)    Dev tool: live tuning sliders + scene editor + JSON export
 ```
+
+In edit mode (dev-tool checkbox): drag targets to reposition, right-click
+deletes, background path and spawn layout export as level JSON — first step
+toward a fully data-driven scene pipeline.
 
 ## Documentation
 

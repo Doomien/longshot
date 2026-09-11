@@ -15,9 +15,19 @@ import { DEFAULT_CONFIG } from './core/Config.ts';
 class StubInput implements IInputSource {
   private aim: Vec2 = { x: LOGICAL_WIDTH / 2, y: LOGICAL_HEIGHT / 2 };
   private fires = 0;
+  private deletes = 0;
+  private held = false;
 
   get aimScreen(): Vec2 {
     return { ...this.aim };
+  }
+
+  get mouseDown(): boolean {
+    return this.held;
+  }
+
+  setMouseDown(v: boolean): void {
+    this.held = v;
   }
 
   /** Point the mouse so the proportional map lands on a world point. */
@@ -28,8 +38,17 @@ class StubInput implements IInputSource {
     };
   }
 
+  /** Place the raw cursor (for camera-mapped editor picking). */
+  setAimDirect(p: Vec2): void {
+    this.aim = { ...p };
+  }
+
   pressFire(): void {
     this.fires += 1;
+  }
+
+  pressDelete(): void {
+    this.deletes += 1;
   }
 
   consumeZoomIn(): boolean {
@@ -47,6 +66,13 @@ class StubInput implements IInputSource {
   consumeFirePressed(): boolean {
     if (this.fires > 0) {
       this.fires -= 1;
+      return true;
+    }
+    return false;
+  }
+  consumeDeletePressed(): boolean {
+    if (this.deletes > 0) {
+      this.deletes -= 1;
       return true;
     }
     return false;
@@ -156,5 +182,77 @@ describe('core loop spine', () => {
     game.state.shotsRemaining = 0;
     game.update(1 / 60, 0);
     expect(game.state.mode).toBe('roundComplete');
+  });
+
+  it('scene editing drags a target and writes back its spawn point', () => {
+    const { game, input } = makeGame();
+    game.restartRound(5);
+    const target = game.targets.all[0]!;
+    // Settle the camera over the target first (grab uses camera-mapped mouse).
+    settle(game, input, target.position);
+    game.setEditing(true);
+    // Put the cursor exactly on the target through the settled camera.
+    const cam = game.camera.position;
+    input.setAimDirect({
+      x: LOGICAL_WIDTH / 2 + (target.position.x - cam.x) * 2,
+      y: LOGICAL_HEIGHT / 2 + (target.position.y - cam.y) * 2,
+    });
+    const before = { ...target.position };
+    input.setMouseDown(true);
+    game.update(1 / 60, 99);
+    input.aimAtWorld({ x: before.x + 400, y: before.y });
+    // Give the camera time to pan: the cursor's world point (which the
+    // target follows) converges past the start once the view catches up.
+    for (let i = 0; i < 60; i++) game.update(1 / 60, 100 + i / 60);
+    expect(target.position.x).toBeGreaterThan(before.x);
+    // Spawn point follows the drag so restarts/exports keep it.
+    const sp = JSON.parse(game.exportSceneJson()) as {
+      spawnPoints: Array<{ x: number; y: number }>;
+    };
+    expect(
+      sp.spawnPoints.some((p) => Math.abs(p.x - target.position.x) < 2),
+    ).toBe(true);
+    input.setMouseDown(false);
+    game.update(1 / 60, 101);
+    game.setEditing(false);
+  });
+
+  it('scene editing deletes under the cursor and exports live scene JSON', () => {
+    const { game, input } = makeGame();
+    game.restartRound(5);
+    const target = game.targets.all[0]!;
+    settle(game, input, target.position);
+    game.setEditing(true);
+    const cam = game.camera.position;
+    input.setAimDirect({
+      x: LOGICAL_WIDTH / 2 + (target.position.x - cam.x) * 2,
+      y: LOGICAL_HEIGHT / 2 + (target.position.y - cam.y) * 2,
+    });
+    input.pressDelete();
+    game.update(1 / 60, 200);
+    expect(target.active).toBe(false);
+    // Shots are swallowed while editing (no accidental fire).
+    const fired = game.state.shotsFired;
+    input.pressFire();
+    game.update(1 / 60, 1);
+    expect(game.state.shotsFired).toBe(fired);
+
+    const json = game.exportSceneJson();
+    const parsed = JSON.parse(json) as { spawnPoints: unknown[] };
+    expect(parsed.spawnPoints).toHaveLength(
+      game.targets.all.filter((t) => t.active).length,
+    );
+    game.setEditing(false);
+  });
+
+  it('spawn-at-reticle adds a target backed by a new spawn point', () => {
+    const { game } = makeGame();
+    game.restartRound(5);
+    const before = game.targets.all.length;
+    game.spawnTargetAtReticle('beerCan');
+    expect(game.targets.all).toHaveLength(before + 1);
+    const added = game.targets.all[before]!;
+    expect(added.type).toBe('beerCan');
+    expect(added.spawnIndex).toBeGreaterThanOrEqual(0);
   });
 });

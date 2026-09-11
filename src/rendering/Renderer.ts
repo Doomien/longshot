@@ -56,6 +56,8 @@ export interface RenderFrame {
     roundStreakBonus: number;
     centerHits: number;
     isNewBest: boolean;
+    /** Scene-editor mode: renderers show markers + banner. */
+    editing: boolean;
     nearestDistance: number | null;
   };
   zoom: number;

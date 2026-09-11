@@ -29,7 +29,7 @@ Lifecycle stages:
 | Coordinate conversion | ✅ | screenToWorld/worldToScreen round-trip tested 2026-09-10 |
 | Debug overlay (F1) | ⚗️ | Toggle renders FPS/cam/zoom/world; smoke-tested, browser check pending |
 | Config centralization | ✅ | `src/core/Config.ts` single source; consumed by sim + overlay |
-| Developer tuning panel | ✅ | F2 live sliders + console JSON export |
+| Developer tuning panel | ✅ | ` dev tool: live sliders + scene editor + JSON export |
 | Resize handling | ⚗️ | Letterboxed 1920×1080 + DPR cap; browser resize check pending |
 | Pause on tab hide | ✅ | Auto-pause overlay, click resumes |
 | Responsive scaling | ⚗️ | Letterboxed 1920×1080 + DPR cap; visual check pending |
@@ -58,7 +58,7 @@ Lifecycle stages:
 | Tin can | ✅ | Definition + sprite; spawns in rotation |
 | Clay target | ✅ | Definition + sprite; far-ridge spawns |
 | Target definitions (TypeScript interface) | ✅ | `TargetDefinitions.ts` |
-| Spawn points (authored) | ✅ | Back Forty 12 points; seeded shuffle tested |
+| Spawn points (authored) | ✅ | Back Forty 12 points; seeded shuffle tested; editable via dev tool, JSON round-trip tested |
 | Rectangular hitboxes | ✅ | `pointInRect` tested |
 | Elliptical hitboxes | ✅ | `pointInTarget` edge-tested |
 | Center-hit / bullseye zone | ✅ | Normalized zone + 1.5x bonus tested |

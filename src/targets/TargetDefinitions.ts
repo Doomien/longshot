@@ -44,6 +44,8 @@ export interface ActiveTarget {
   height: number;
   distance: number;
   scoreValue: number;
+  /** Index into the level's spawnPoints this target was dealt from. */
+  spawnIndex: number;
   active: boolean;
   hit: boolean;
   /** Seconds since round start when hit (for reaction animation). */

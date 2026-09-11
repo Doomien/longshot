@@ -45,6 +45,15 @@ export interface CameraConfig {
   panSpeed: number;
 }
 
+export interface EffectsConfig {
+  /** Reaction gravity for tumbling targets (world px/s^2). */
+  gravity: number;
+  /** Exponential damping rate for reaction velocity/spin (1/s). */
+  reactionDamping: number;
+  /** Screen-shake amplitude cap (screen px at full trauma). */
+  shakeMaxPixels: number;
+}
+
 export interface GameConfig {
   aim: AimConfig;
   shooting: ShootingConfig;
@@ -52,6 +61,7 @@ export interface GameConfig {
   round: RoundConfig;
   world: WorldConfig;
   camera: CameraConfig;
+  effects: EffectsConfig;
 }
 
 export const DEFAULT_CONFIG: GameConfig = {
@@ -84,6 +94,11 @@ export const DEFAULT_CONFIG: GameConfig = {
   },
   camera: {
     panSpeed: 6,
+  },
+  effects: {
+    gravity: 1500,
+    reactionDamping: 2.2,
+    shakeMaxPixels: 14,
   },
 };
 

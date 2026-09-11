@@ -17,6 +17,7 @@ function makeTarget(): ActiveTarget {
     height: 54,
     distance: 200,
     scoreValue: 100,
+    spawnIndex: 0,
     active: true,
     hit: true,
     hitAt: 0,

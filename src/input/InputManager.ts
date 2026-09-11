@@ -8,16 +8,20 @@ import type { Vec2 } from '../core/types.ts';
 export interface IInputSource {
   /** Desired aim point in logical screen coords (1920x1080 space). */
   readonly aimScreen: Vec2;
+  /** True while the left mouse button is held (for scene-editor dragging). */
+  readonly mouseDown: boolean;
   /** Consume one pending "zoom in" step, if any. */
   consumeZoomIn(): boolean;
   /** Consume one pending "zoom out" step, if any. */
   consumeZoomOut(): boolean;
   /** Consume one pending debug-overlay toggle (F1). */
   consumeDebugToggle(): boolean;
-  /** Consume one pending tuning-panel toggle (F2). */
+  /** Consume one pending dev-tool toggle (F2 or `). */
   consumePanelToggle(): boolean;
   /** Consume one pending shot (left click). */
   consumeFirePressed(): boolean;
+  /** Consume one pending scene-editor delete (right click). */
+  consumeDeletePressed(): boolean;
   /** Consume one pending round restart (R). */
   consumeRestartPressed(): boolean;
   /** Consume one pending mute toggle (M). */
@@ -31,12 +35,14 @@ export class DomInputManager implements IInputSource {
   private debugToggles = 0;
   private panelToggles = 0;
   private firePresses = 0;
+  private deletePresses = 0;
   private restartPresses = 0;
   private mutePresses = 0;
+  private mouseHeld = false;
   private detachFns: Array<() => void> = [];
 
   constructor(
-    _canvas: HTMLCanvasElement,
+    private readonly canvas: HTMLCanvasElement,
     private readonly resizer: ResizeHandler,
     private readonly onGesture?: () => void,
   ) {}
@@ -44,6 +50,10 @@ export class DomInputManager implements IInputSource {
   get aimScreen(): Vec2 {
     // Return a copy so consumers can't mutate internal state.
     return { x: this.aim.x, y: this.aim.y };
+  }
+
+  get mouseDown(): boolean {
+    return this.mouseHeld;
   }
 
   attach(): void {
@@ -66,8 +76,8 @@ export class DomInputManager implements IInputSource {
       if (e.key === 'F1') {
         e.preventDefault();
         this.debugToggles += 1;
-      } else if (e.key === 'F2') {
-        e.preventDefault();
+      } else if (e.key === 'F2' || e.key === '`' || e.key === '~') {
+        if (e.key === 'F2') e.preventDefault();
         this.panelToggles += 1;
       } else if (e.key === 'z' || e.key === 'Z') {
         this.zoomInSteps += 1;
@@ -81,18 +91,33 @@ export class DomInputManager implements IInputSource {
     };
     const onFire = (e: MouseEvent): void => {
       notifyGesture();
-      if (e.button === 0) this.firePresses += 1;
+      if (e.button === 0) {
+        this.firePresses += 1;
+        this.mouseHeld = true;
+      }
+    };
+    const onRelease = (e: MouseEvent): void => {
+      if (e.button === 0) this.mouseHeld = false;
+    };
+    const onDelete = (e: MouseEvent): void => {
+      // Right-click deletes the grabbed scene item in edit mode.
+      e.preventDefault();
+      this.deletePresses += 1;
     };
     window.addEventListener('mousemove', onMove);
     // { passive: false } so preventDefault() stops page scroll on wheel zoom.
     window.addEventListener('wheel', onWheel, { passive: false });
     window.addEventListener('keydown', onKey);
     window.addEventListener('mousedown', onFire);
+    window.addEventListener('mouseup', onRelease);
+    this.canvas.addEventListener('contextmenu', onDelete);
     this.detachFns = [
       () => window.removeEventListener('mousemove', onMove),
       () => window.removeEventListener('wheel', onWheel),
       () => window.removeEventListener('keydown', onKey),
       () => window.removeEventListener('mousedown', onFire),
+      () => window.removeEventListener('mouseup', onRelease),
+      () => this.canvas.removeEventListener('contextmenu', onDelete),
     ];
   }
 
@@ -136,6 +161,14 @@ export class DomInputManager implements IInputSource {
   consumeFirePressed(): boolean {
     if (this.firePresses > 0) {
       this.firePresses -= 1;
+      return true;
+    }
+    return false;
+  }
+
+  consumeDeletePressed(): boolean {
+    if (this.deletePresses > 0) {
+      this.deletePresses -= 1;
       return true;
     }
     return false;
