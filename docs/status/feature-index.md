@@ -113,7 +113,7 @@ Lifecycle stages:
 | Feature | Stage | Notes |
 |---------|-------|-------|
 | Desert junkyard level | ✅ | Back Forty playable with SVG backdrop |
-| Portrait backdrop level | ⚗️ | Hotkey 1/2 + cover-fit wired; awaiting portrait.png asset |
+| Portrait backdrop level | ✅ | Hotkey 1/2, cover-fit portrait.png live |
 | Rural back lot level | 💡 | Post-MVP |
 | Campsite level | 💡 | Post-MVP |
 | Mountain cabin level | 💡 | Post-MVP |
