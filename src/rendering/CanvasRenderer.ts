@@ -69,9 +69,9 @@ function drawHud(ctx: CanvasRenderingContext2D, frame: RenderFrame): void {
     }
     ctx.fillStyle = '#f2f5f7';
     ctx.font = '500 38px ui-monospace, Menlo, monospace';
-    ctx.fillText(`SCORE ${hud.score}   (accuracy bonus +${hud.roundBonus})`, cx, 530);
+    ctx.fillText(`SCORE ${hud.score}   (accuracy +${hud.roundBonus}, streak +${hud.roundStreakBonus})`, cx, 530);
     ctx.fillText(
-      `HITS ${hud.hits}/${hud.shotsTotal}   ACC ${(hud.accuracy * 100).toFixed(0)}%   BEST STREAK ${hud.bestStreak}`,
+      `HITS ${hud.hits}/${hud.shotsTotal}   ACC ${(hud.accuracy * 100).toFixed(0)}%   CENTER ${hud.centerHits}   BEST STREAK ${hud.bestStreak}`,
       cx,
       585,
     );

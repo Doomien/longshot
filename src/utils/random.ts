@@ -28,3 +28,13 @@ export function gaussian(rng: Rng = Math.random): number {
   while (v === 0) v = rng();
   return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
 }
+
+/** Fisher-Yates shuffle (seeded when given a seeded rng). Returns a copy. */
+export function shuffle<T>(items: readonly T[], rng: Rng = Math.random): T[] {
+  const arr = [...items];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [arr[i], arr[j]] = [arr[j]!, arr[i]!];
+  }
+  return arr;
+}

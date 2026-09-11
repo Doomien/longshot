@@ -45,6 +45,7 @@ function makeFrame(debugVisible = false): RenderFrame {
     camera: { x: 2048, y: 1152, zoom: 2, viewportWidth: 1920, viewportHeight: 1080 },
     worldWidth: 4096,
     worldHeight: 2304,
+    background: null,
     aimScreen: { x: 960, y: 540 },
     aimWorld: { x: 2048, y: 1152 },
     reticleScreen: { x: 960, y: 540 },
@@ -59,7 +60,7 @@ function makeFrame(debugVisible = false): RenderFrame {
     hud: {
       mode: 'playing', score: 0, shotsRemaining: 10, shotsTotal: 10, streak: 0, muted: false,
       paused: false, accuracy: 0, hits: 0, bestStreak: 0, bestScore: 0, roundBonus: 0,
-      isNewBest: false, nearestDistance: null,
+      roundStreakBonus: 0, centerHits: 0, isNewBest: false, nearestDistance: null,
     },
     zoom: 2,
     zoomLevels: [1, 2, 4],

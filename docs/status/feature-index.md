@@ -71,7 +71,7 @@ Lifecycle stages:
 
 | Feature | Stage | Notes |
 |---------|-------|-------|
-| World renderer | ⚗️ | Procedural placeholder; final art in Phase 6 |
+| World renderer | ✅ | SVG backdrop + procedural fallback; final art in Phase 6 |
 | Scope renderer | ⚗️ | Clip + reticle; browser playtest pending |
 | HUD (score, shots, streak) | ✅ | Counters live; results panel on complete |
 | Distance display | ✅ | Nearest-target DIST readout in HUD |

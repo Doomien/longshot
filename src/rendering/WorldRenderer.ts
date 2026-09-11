@@ -1,6 +1,27 @@
 import { applyCameraTransform } from './cameraTransform.ts';
 import type { RenderFrame } from './Renderer.ts';
 
+// Committed backdrop art (review item 5): drawn over the procedural base once
+// loaded, so the deployed game shows an illustrated range instead of flat
+// color. The procedural scene stays as the loading/error fallback — and as
+// the deterministic backdrop for tests, which never load images.
+
+let bgCache: { src: string; img: HTMLImageElement; ready: boolean } | null = null;
+
+function backgroundImage(src: string | null): HTMLImageElement | null {
+  if (!src || typeof Image === 'undefined') return null;
+  if (!bgCache || bgCache.src !== src) {
+    const img = new Image();
+    const entry = { src, img, ready: false };
+    bgCache = entry;
+    img.onload = () => {
+      entry.ready = true;
+    };
+    img.src = src;
+  }
+  return bgCache.ready ? bgCache.img : null;
+}
+
 // Procedural placeholder background (Phase 0 stand-in for the illustrated
 // range art). Drawn fully in world coordinates under the camera transform so
 // panning/zooming the camera visibly moves across it. Deterministic shapes —
@@ -73,6 +94,12 @@ export function drawWorld(
   // Barrels.
   drawBarrel(ctx, W * 0.78, H * 0.8);
   drawBarrel(ctx, W * 0.82, H * 0.8);
+
+  // Committed art covers the procedural base once loaded (fallback stays).
+  const bg = backgroundImage(frame.background);
+  if (bg) {
+    ctx.drawImage(bg, 0, 0, W, H);
+  }
 
   // World border.
   ctx.strokeStyle = '#2c3e50';

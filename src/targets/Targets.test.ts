@@ -7,7 +7,7 @@ import {
   pointInTarget,
   worldToLocal,
 } from './HitDetection.ts';
-import { accuracyBonus, distanceMultiplier, scoreForHit, streakMultiplier } from './Scoring.ts';
+import { accuracyBonus, distanceMultiplier, scoreForHit, streakBonus, streakMultiplier } from './Scoring.ts';
 import { selectSpawnPoints, shuffle } from './SpawnPoints.ts';
 import { TARGET_DEFINITIONS, type ActiveTarget } from './TargetDefinitions.ts';
 import { TargetManager } from './TargetManager.ts';
@@ -82,6 +82,13 @@ describe('Scoring', () => {
     expect(accuracyBonus(6, 10)).toBe(200);
     expect(accuracyBonus(5, 10)).toBe(0);
     expect(accuracyBonus(0, 0)).toBe(0);
+  });
+
+  it('pays the streak bonus only beyond a 2-streak', () => {
+    expect(streakBonus(0)).toBe(0);
+    expect(streakBonus(2)).toBe(0);
+    expect(streakBonus(3)).toBe(50);
+    expect(streakBonus(5)).toBe(150);
   });
 });
 

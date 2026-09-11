@@ -16,6 +16,8 @@ export interface RenderFrame {
   camera: CameraSnapshot;
   worldWidth: number;
   worldHeight: number;
+  /** Committed backdrop art path (public/), or null for procedural only. */
+  background: string | null;
   /** Raw mouse point in logical screen coords (input intent, pre-smoothing). */
   aimScreen: Vec2;
   /** Raw mouse point resolved to world coords. */
@@ -51,6 +53,8 @@ export interface RenderFrame {
     bestStreak: number;
     bestScore: number;
     roundBonus: number;
+    roundStreakBonus: number;
+    centerHits: number;
     isNewBest: boolean;
     nearestDistance: number | null;
   };

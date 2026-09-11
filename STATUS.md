@@ -5,7 +5,7 @@ repo: longshot-target-practice
 status: active
 tier: T0
 kind: status
-gate: "Gate 0 (Proposal) — complete"
+gate: "Gate 1 (Running prototype) — complete; Gate 2 (Playtest + art) — open"
 last_updated: 2026-09-10
 owner: K_St_Games Team
 ---

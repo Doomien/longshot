@@ -10,7 +10,6 @@ export class AudioManager {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
   private muted = false;
-
   get isMuted(): boolean {
     return this.muted;
   }
@@ -37,6 +36,19 @@ export class AudioManager {
       this.master = this.ctx.createGain();
       this.master.gain.value = 0.5;
       this.master.connect(this.ctx.destination);
+      // Cheap "distant range" echo: a short feedback delay on the master bus
+      // so shots and pings carry a hint of outdoor slap-back.
+      const delay = this.ctx.createDelay(0.5);
+      delay.delayTime.value = 0.16;
+      const feedback = this.ctx.createGain();
+      feedback.gain.value = 0.25;
+      const wet = this.ctx.createGain();
+      wet.gain.value = 0.18;
+      this.master.connect(delay);
+      delay.connect(feedback);
+      feedback.connect(delay);
+      delay.connect(wet);
+      wet.connect(this.ctx.destination);
     } catch {
       this.ctx = null;
       this.master = null;
@@ -51,8 +63,8 @@ export class AudioManager {
       const t = this.ctx.currentTime;
       switch (name) {
         case 'fire':
-          this.noiseBurst(t, 0.14, 900, 0.9);
-          this.tone(t, 130, 45, 0.18, 'sine', 0.8);
+          this.noiseBurst(t, 0.14, 900 * this.jitter(), 0.9);
+          this.tone(t, 130 * this.jitter(), 45, 0.18, 'sine', 0.8);
           break;
         case 'metal':
           this.ping(t, 1750 * this.jitter(), 0.45, 0.5);
@@ -68,14 +80,15 @@ export class AudioManager {
           this.ping(t, 900 * this.jitter(), 0.2, 0.4);
           break;
         case 'dirt':
-          this.noiseBurst(t, 0.16, 420, 0.45);
+          // Jittered low thump so repeated misses don't sound identical.
+          this.noiseBurst(t, 0.16 * (0.9 + Math.random() * 0.2), 420 * this.jitter(), 0.45);
           break;
         case 'score':
           this.tone(t, 880 * this.jitter(), 1320, 0.09, 'square', 0.18);
           break;
         case 'round':
-          this.tone(t, 660, 660, 0.12, 'square', 0.2);
-          this.tone(t + 0.14, 990, 990, 0.2, 'square', 0.2);
+          this.tone(t, 660 * this.jitter(), 660, 0.12, 'square', 0.2);
+          this.tone(t + 0.14, 990 * this.jitter(), 990, 0.2, 'square', 0.2);
           break;
       }
     } catch {

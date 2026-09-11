@@ -25,7 +25,7 @@ export class TargetManager {
   private targets: ActiveTarget[] = [];
 
   constructor(
-    private level: LevelDefinition = BACK_FORTY,
+    private levelDef: LevelDefinition = BACK_FORTY,
     private readonly targetsPerRound = 8,
   ) {
     this.reset(Date.now());
@@ -35,13 +35,17 @@ export class TargetManager {
     return this.targets;
   }
 
+  get level(): LevelDefinition {
+    return this.levelDef;
+  }
+
   get remaining(): number {
     return this.targets.filter((t) => t.active && !t.hit).length;
   }
 
   reset(seed: number): void {
     const rng = mulberry32(seed);
-    const points = selectSpawnPoints(this.level, this.targetsPerRound, rng);
+    const points = selectSpawnPoints(this.levelDef, this.targetsPerRound, rng);
     this.targets = points.map((p, i) => {
       const type = pickType(p.allowedTypes, rng, i);
       const def = TARGET_DEFINITIONS[type];

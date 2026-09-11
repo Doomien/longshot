@@ -38,3 +38,8 @@ export function accuracyBonus(hits: number, shotsFired: number): number {
   if (accuracy >= 0.6) return 200;
   return 0;
 }
+
+/** Longest-streak bonus line item: +50 per hit beyond a 2-streak. */
+export function streakBonus(bestStreak: number): number {
+  return Math.max(0, bestStreak - 2) * 50;
+}

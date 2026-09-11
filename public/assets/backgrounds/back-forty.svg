@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="4096" height="2304" viewBox="0 0 4096 2304">
+  <title>Back Forty — placeholder range backdrop</title>
+  <desc>Procedural stand-in for the final illustrated background. Landmark coordinates match BACK_FORTY spawn points.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7fb2d9"/>
+      <stop offset="1" stop-color="#cfe0c6"/>
+    </linearGradient>
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a68f60"/>
+      <stop offset="1" stop-color="#77643f"/>
+    </linearGradient>
+    <linearGradient id="barnwood" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8a4436"/>
+      <stop offset="1" stop-color="#6b3128"/>
+    </linearGradient>
+  </defs>
+
+  <!-- sky -->
+  <rect x="0" y="0" width="4096" height="1270" fill="url(#sky)"/>
+  <circle cx="3440" cy="330" r="120" fill="#fdf6d8" opacity="0.9"/>
+  <g fill="#ffffff" opacity="0.75">
+    <ellipse cx="700" cy="380" rx="260" ry="60"/>
+    <ellipse cx="880" cy="340" rx="200" ry="55"/>
+    <ellipse cx="2500" cy="560" rx="300" ry="65"/>
+    <ellipse cx="2730" cy="520" rx="180" ry="50"/>
+  </g>
+
+  <!-- distant ridge -->
+  <polygon points="0,1267 585,968 1170,1152 1755,968 2341,1198 2925,1012 3510,1152 4096,1060 4096,1267 0,1267" fill="#8a8f7a"/>
+  <polygon points="0,1267 700,1080 1400,1200 2100,1060 2800,1210 3500,1090 4096,1180 4096,1267 0,1267" fill="#7a7f6c"/>
+
+  <!-- ground -->
+  <rect x="0" y="1267" width="4096" height="1037" fill="url(#ground)"/>
+  <ellipse cx="2048" cy="2050" rx="1900" ry="260" fill="#8f7a52" opacity="0.6"/>
+  <!-- dirt lane -->
+  <polygon points="1500,2304 1900,1500 2300,1500 2700,2304" fill="#9a8560" opacity="0.55"/>
+
+  <!-- barn (spawn x~820-1010, y~1330-1420) -->
+  <g>
+    <rect x="740" y="1330" width="340" height="210" fill="url(#barnwood)"/>
+    <polygon points="740,1330 910,1210 1080,1330" fill="#57281f"/>
+    <rect x="860" y="1410" width="100" height="130" fill="#e8dcc3"/>
+    <rect x="770" y="1360" width="60" height="60" fill="#3d2c1e" opacity="0.8"/>
+    <rect x="990" y="1360" width="60" height="60" fill="#3d2c1e" opacity="0.8"/>
+  </g>
+
+  <!-- fence row (spawns y~1520) -->
+  <g fill="#5d4a33">
+    <rect x="328" y="1500" width="16" height="120"/>
+    <rect x="641" y="1500" width="16" height="120"/>
+    <rect x="954" y="1500" width="16" height="120"/>
+    <rect x="1267" y="1500" width="16" height="120"/>
+    <rect x="1580" y="1500" width="16" height="120"/>
+    <rect x="1893" y="1500" width="16" height="120"/>
+    <rect x="2206" y="1500" width="16" height="120"/>
+    <rect x="2519" y="1500" width="16" height="120"/>
+    <rect x="2832" y="1500" width="16" height="120"/>
+    <rect x="3145" y="1500" width="16" height="120"/>
+    <rect x="3458" y="1500" width="16" height="120"/>
+    <rect x="3771" y="1500" width="16" height="120"/>
+    <rect x="328" y="1530" width="3459" height="14"/>
+  </g>
+
+  <!-- truck (spawn x~2700-2900, y~1560-1660) -->
+  <g>
+    <rect x="2376" y="1600" width="280" height="100" fill="#4a5a6a"/>
+    <rect x="2586" y="1530" width="120" height="70" fill="#4a5a6a"/>
+    <rect x="2600" y="1542" width="92" height="46" fill="#bcd3e0" opacity="0.85"/>
+    <circle cx="2440" cy="1700" r="30" fill="#22252a"/>
+    <circle cx="2640" cy="1700" r="30" fill="#22252a"/>
+    <circle cx="2440" cy="1700" r="12" fill="#7d8894"/>
+    <circle cx="2640" cy="1700" r="12" fill="#7d8894"/>
+  </g>
+
+  <!-- barrels (spawns x~3190/3360, y~1750) -->
+  <g>
+    <rect x="3162" y="1660" width="60" height="96" rx="8" fill="#6e7b8b"/>
+    <rect x="3162" y="1682" width="60" height="12" fill="#59616e"/>
+    <rect x="3162" y="1720" width="60" height="12" fill="#59616e"/>
+    <rect x="3330" y="1660" width="60" height="96" rx="8" fill="#75828f"/>
+    <rect x="3330" y="1682" width="60" height="12" fill="#59616e"/>
+    <rect x="3330" y="1720" width="60" height="12" fill="#59616e"/>
+  </g>
+
+  <!-- scattered rocks + grass tufts -->
+  <g fill="#6f6a5e">
+    <ellipse cx="500" cy="1900" rx="70" ry="34"/>
+    <ellipse cx="3700" cy="2000" rx="90" ry="40"/>
+    <ellipse cx="1500" cy="2100" rx="55" ry="26"/>
+  </g>
+  <g stroke="#5f7a3d" stroke-width="8" stroke-linecap="round">
+    <path d="M400 1850 l-14 -40 M414 1850 l0 -46 M428 1850 l14 -40"/>
+    <path d="M1800 1950 l-14 -40 M1814 1950 l0 -46 M1828 1950 l14 -40"/>
+    <path d="M3000 1900 l-14 -40 M3014 1900 l0 -46 M3028 1900 l14 -40"/>
+    <path d="M900 2050 l-14 -40 M914 2050 l0 -46 M928 2050 l14 -40"/>
+  </g>
+
+  <!-- birds -->
+  <g stroke="#3a3f45" stroke-width="6" fill="none" stroke-linecap="round">
+    <path d="M1600 500 q24 -22 48 0 q24 -22 48 0"/>
+    <path d="M2200 380 q20 -18 40 0 q20 -18 40 0"/>
+  </g>
+</svg>

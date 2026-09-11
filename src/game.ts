@@ -12,7 +12,7 @@ import { DomInputManager, type IInputSource } from './input/InputManager.ts';
 import { BACK_FORTY } from './levels/LevelDefinition.ts';
 import { CanvasRenderer } from './rendering/CanvasRenderer.ts';
 import type { IRenderer, RenderFrame } from './rendering/Renderer.ts';
-import { scoreForHit, accuracyBonus } from './targets/Scoring.ts';
+import { scoreForHit, accuracyBonus, streakBonus } from './targets/Scoring.ts';
 import { TargetManager } from './targets/TargetManager.ts';
 import type { ActiveTarget, TargetType } from './targets/TargetDefinitions.ts';
 import { AudioManager, type SoundName } from './audio/AudioManager.ts';
@@ -23,6 +23,7 @@ import { ScreenShake } from './effects/ScreenShake.ts';
 import { updateTargetReactions } from './effects/TargetReactions.ts';
 import { TuningPanel } from './ui/TuningPanel.ts';
 import { smoothingFactor } from './utils/math.ts';
+import { screenToWorld, worldToScreen } from './utils/coordinates.ts';
 import type { Rng } from './utils/random.ts';
 
 // Game orchestrator: owns sim state (GameState, Camera, ScopeController) and
@@ -52,6 +53,8 @@ export class Game {
   private save: SaveData = loadSave();
   private shotLog: ShotSample[] = [];
   private roundBonus = 0;
+  private roundStreakBonus = 0;
+  private centerHits = 0;
   private isNewBest = false;
   private paused = false;
   private lastShot: RenderFrame['lastShot'] = null;
@@ -59,6 +62,7 @@ export class Game {
   private readonly renderer: IRenderer;
   private readonly loop: IGameLoop;
   private readonly resizer: ResizeHandler | null;
+  private readonly hasDom: boolean;
   private elapsed = 0;
   private debugVisible = false;
 
@@ -91,13 +95,28 @@ export class Game {
     this.targets = new TargetManager(BACK_FORTY, 8);
     this.panel = new TuningPanel(this.config);
 
+    // DOM wiring is skipped outside browsers (node tests inject all seams
+    // via GameOptions and drive update()/render() directly).
     this.resizer = new ResizeHandler(canvas, ctx);
-    this.resizer.resize();
+    const hasDom = typeof window !== 'undefined' && typeof document !== 'undefined';
+    this.hasDom = hasDom;
+    if (hasDom) {
+      this.resizer.resize();
+    }
 
-    const domInput = new DomInputManager(canvas, this.resizer, () => this.audio.unlock());
-    domInput.attach();
-    this.input = options.input ?? domInput;
+    if (options.input) {
+      this.input = options.input;
+    } else if (hasDom) {
+      const domInput = new DomInputManager(canvas, this.resizer, () => this.audio.unlock());
+      domInput.attach();
+      this.input = domInput;
+    } else {
+      throw new Error('Game requires options.input outside a browser');
+    }
 
+    if (!options.renderer && !hasDom) {
+      throw new Error('Game requires options.renderer outside a browser');
+    }
     this.renderer =
       options.renderer ??
       new CanvasRenderer(ctx, () => this.resizer!.current, this.config);
@@ -109,8 +128,10 @@ export class Game {
         render: () => this.render(),
       });
 
-    window.addEventListener('resize', this.handleResize);
-    document.addEventListener('visibilitychange', this.handleVisibility);
+    if (hasDom) {
+      window.addEventListener('resize', this.handleResize);
+      document.addEventListener('visibilitychange', this.handleVisibility);
+    }
   }
 
   start(): void {
@@ -119,6 +140,7 @@ export class Game {
 
   stop(): void {
     this.loop.stop();
+    if (!this.hasDom) return;
     window.removeEventListener('resize', this.handleResize);
     document.removeEventListener('visibilitychange', this.handleVisibility);
   }
@@ -130,6 +152,11 @@ export class Game {
 
     if (this.input.consumeDebugToggle()) {
       this.debugVisible = !this.debugVisible;
+    }
+    // Mode self-heal (review item 9): no caller path may leave 'playing'
+    // with zero shots without completing the round.
+    if (this.state.mode === 'playing' && this.state.shotsRemaining <= 0) {
+      this.completeRound();
     }
     if (this.input.consumePanelToggle()) {
       this.panel.toggle();
@@ -225,6 +252,7 @@ export class Game {
       const { points } = scoreForHit(found, this.state.streak, res.center);
       this.state.score += points;
       this.state.hits += 1;
+      if (res.center) this.centerHits += 1;
       this.lastShot = { impact, hit: true, points, center: res.center };
       spawnHitBurst(this.particles, impact, found.type, rng);
       this.popups.add(impact, res.center ? `+${points} CENTER!` : `+${points}`);
@@ -248,11 +276,13 @@ export class Game {
     }
   }
 
-  /** Round end: accuracy bonus, persistence, telemetry. */
+  /** Round end: accuracy + streak bonuses, persistence, telemetry. */
   private completeRound(): void {
+    if (this.state.mode === 'roundComplete') return;
     this.state.mode = 'roundComplete';
     this.roundBonus = accuracyBonus(this.state.hits, this.state.shotsFired);
-    this.state.score += this.roundBonus;
+    this.roundStreakBonus = streakBonus(this.state.bestStreak);
+    this.state.score += this.roundBonus + this.roundStreakBonus;
     const accuracy = this.state.shotsFired > 0 ? this.state.hits / this.state.shotsFired : 0;
     this.isNewBest = this.state.score > this.save.bestScore;
     this.save = {
@@ -282,6 +312,8 @@ export class Game {
     this.shake.reset();
     this.shotLog = [];
     this.roundBonus = 0;
+    this.roundStreakBonus = 0;
+    this.centerHits = 0;
     this.isNewBest = false;
     this.lastShot = null;
   }
@@ -289,7 +321,7 @@ export class Game {
   /** Freeze current sim state into a renderer-agnostic frame and draw it. */
   render(): void {
     const aimScreen = this.input.aimScreen;
-    const aimWorld = this.camera.screenToWorld(aimScreen.x, aimScreen.y);
+    const aimWorld = screenToWorld(this.camera, aimScreen.x, aimScreen.y);
     const snap = this.aim.snapshot;
     // Screen shake offsets the RENDER camera only — sim coords untouched.
     const shakePx = this.shake.offset(this.elapsed);
@@ -304,9 +336,10 @@ export class Game {
       camera: shakenCamera,
       worldWidth: this.config.world.width,
       worldHeight: this.config.world.height,
+      background: this.targets.level.background,
       aimScreen,
       aimWorld,
-      reticleScreen: this.camera.worldToScreen(snap.finalReticle.x, snap.finalReticle.y),
+      reticleScreen: worldToScreen(this.camera, snap.finalReticle.x, snap.finalReticle.y),
       reticleWorld: { ...snap.finalReticle },
       stability: snap.stability,
       swayPixels: snap.swayPixels,
@@ -328,6 +361,8 @@ export class Game {
         bestStreak: this.state.bestStreak,
         bestScore: this.save.bestScore,
         roundBonus: this.roundBonus,
+        roundStreakBonus: this.roundStreakBonus,
+        centerHits: this.centerHits,
         isNewBest: this.isNewBest,
         nearestDistance: nearestTargetDistance(this.targets.all, snap.finalReticle),
       },

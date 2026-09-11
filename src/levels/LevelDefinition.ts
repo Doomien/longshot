@@ -8,6 +8,8 @@ import type { TargetSpawnPoint, TargetType } from '../targets/TargetDefinitions.
 export interface LevelDefinition {
   id: string;
   name: string;
+  /** Committed art under public/ (served at root); null = procedural only. */
+  background: string | null;
   worldWidth: number;
   worldHeight: number;
   spawnPoints: TargetSpawnPoint[];
@@ -21,6 +23,7 @@ const PLATE: TargetType[] = ['metalPlate', 'clayTarget'];
 export const BACK_FORTY: LevelDefinition = {
   id: 'back-forty-01',
   name: 'The Back Forty',
+  background: '/assets/backgrounds/back-forty.svg',
   worldWidth: 4096,
   worldHeight: 2304,
   startingCamera: { x: 2048, y: 1152 },
