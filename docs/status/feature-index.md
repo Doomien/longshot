@@ -29,7 +29,7 @@ Lifecycle stages:
 | Coordinate conversion | ✅ | screenToWorld/worldToScreen round-trip tested 2026-09-10 |
 | Debug overlay (F1) | ⚗️ | Toggle renders FPS/cam/zoom/world; smoke-tested, browser check pending |
 | Config centralization | ✅ | `src/core/Config.ts` single source; consumed by sim + overlay |
-| Developer tuning panel | ⚗️ | Read-only values in F1 overlay + console export stub; sliders in Phase 2 |
+| Developer tuning panel | ✅ | F2 live sliders + console JSON export |
 | Resize handling | ⚗️ | Letterboxed 1920×1080 + DPR cap; browser resize check pending |
 | Pause on tab hide | ✅ | Auto-pause overlay, click resumes |
 | Responsive scaling | ⚗️ | Letterboxed 1920×1080 + DPR cap; visual check pending |
@@ -55,8 +55,8 @@ Lifecycle stages:
 | Beer can | ✅ | Definition + procedural sprite; `Targets.test.ts` 2026-09-10 |
 | Glass bottle | ✅ | Definition + procedural sprite |
 | Metal plate | ✅ | Definition + procedural sprite |
-| Tin can | ⚗️ | Definition + sprite; spawns in rotation |
-| Clay target | ⚗️ | Definition + sprite; far-ridge spawns |
+| Tin can | ✅ | Definition + sprite; spawns in rotation |
+| Clay target | ✅ | Definition + sprite; far-ridge spawns |
 | Target definitions (TypeScript interface) | ✅ | `TargetDefinitions.ts` |
 | Spawn points (authored) | ✅ | Back Forty 12 points; seeded shuffle tested |
 | Rectangular hitboxes | ✅ | `pointInRect` tested |
@@ -74,7 +74,7 @@ Lifecycle stages:
 | World renderer | ⚗️ | Procedural placeholder; final art in Phase 6 |
 | Scope renderer | ⚗️ | Clip + reticle; browser playtest pending |
 | HUD (score, shots, streak) | ✅ | Counters live; results panel on complete |
-| Distance display | 💡 | Deferred to art pass |
+| Distance display | ✅ | Nearest-target DIST readout in HUD |
 | Particle system | ✅ | Capped pool, gravity; tested |
 | Impact effects (dust, spark, splinter) | ✅ | Per-material bursts + miss dust; tested |
 | Screen shake | ✅ | Trauma shake, render-only; tested |

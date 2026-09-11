@@ -60,6 +60,19 @@ Open http://localhost:5173 (or Vite's default port).
 npm run dev        # Vite dev server
 npm run build      # Production build
 npm run preview    # Preview production build
+npm test           # Unit tests (vitest)
+```
+
+## Controls
+
+```text
+Mouse Move   Scan / aim
+Left Click   Fire (menu: click to start)
+Wheel / Z/X  Zoom 1x / 2x / 4x
+R            Restart round
+M            Mute
+F1           Debug overlay (FPS, camera, reticle, stability, hitboxes)
+F2           Live tuning panel (sliders + export JSON)
 ```
 
 ## Documentation

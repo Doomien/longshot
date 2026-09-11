@@ -14,6 +14,8 @@ export interface IInputSource {
   consumeZoomOut(): boolean;
   /** Consume one pending debug-overlay toggle (F1). */
   consumeDebugToggle(): boolean;
+  /** Consume one pending tuning-panel toggle (F2). */
+  consumePanelToggle(): boolean;
   /** Consume one pending shot (left click). */
   consumeFirePressed(): boolean;
   /** Consume one pending round restart (R). */
@@ -27,6 +29,7 @@ export class DomInputManager implements IInputSource {
   private zoomInSteps = 0;
   private zoomOutSteps = 0;
   private debugToggles = 0;
+  private panelToggles = 0;
   private firePresses = 0;
   private restartPresses = 0;
   private mutePresses = 0;
@@ -63,6 +66,9 @@ export class DomInputManager implements IInputSource {
       if (e.key === 'F1') {
         e.preventDefault();
         this.debugToggles += 1;
+      } else if (e.key === 'F2') {
+        e.preventDefault();
+        this.panelToggles += 1;
       } else if (e.key === 'z' || e.key === 'Z') {
         this.zoomInSteps += 1;
       } else if (e.key === 'x' || e.key === 'X') {
@@ -114,6 +120,14 @@ export class DomInputManager implements IInputSource {
   consumeDebugToggle(): boolean {
     if (this.debugToggles > 0) {
       this.debugToggles -= 1;
+      return true;
+    }
+    return false;
+  }
+
+  consumePanelToggle(): boolean {
+    if (this.panelToggles > 0) {
+      this.panelToggles -= 1;
       return true;
     }
     return false;

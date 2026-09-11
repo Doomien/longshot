@@ -14,13 +14,14 @@ import { CanvasRenderer } from './rendering/CanvasRenderer.ts';
 import type { IRenderer, RenderFrame } from './rendering/Renderer.ts';
 import { scoreForHit, accuracyBonus } from './targets/Scoring.ts';
 import { TargetManager } from './targets/TargetManager.ts';
-import type { TargetType } from './targets/TargetDefinitions.ts';
+import type { ActiveTarget, TargetType } from './targets/TargetDefinitions.ts';
 import { AudioManager, type SoundName } from './audio/AudioManager.ts';
 import { ParticleSystem } from './effects/ParticleSystem.ts';
 import { spawnHitBurst, spawnMissPuff } from './effects/ImpactEffects.ts';
 import { ScorePopups } from './effects/ScorePopups.ts';
 import { ScreenShake } from './effects/ScreenShake.ts';
 import { updateTargetReactions } from './effects/TargetReactions.ts';
+import { TuningPanel } from './ui/TuningPanel.ts';
 import { smoothingFactor } from './utils/math.ts';
 import type { Rng } from './utils/random.ts';
 
@@ -47,6 +48,7 @@ export class Game {
   private readonly popups = new ScorePopups();
   private readonly shake = new ScreenShake();
   private readonly audio = new AudioManager();
+  private readonly panel: TuningPanel;
   private save: SaveData = loadSave();
   private shotLog: ShotSample[] = [];
   private roundBonus = 0;
@@ -87,6 +89,7 @@ export class Game {
       y: this.config.world.height / 2,
     });
     this.targets = new TargetManager(BACK_FORTY, 8);
+    this.panel = new TuningPanel(this.config);
 
     this.resizer = new ResizeHandler(canvas, ctx);
     this.resizer.resize();
@@ -127,6 +130,9 @@ export class Game {
 
     if (this.input.consumeDebugToggle()) {
       this.debugVisible = !this.debugVisible;
+    }
+    if (this.input.consumePanelToggle()) {
+      this.panel.toggle();
     }
 
     let zoomChanged = false;
@@ -323,6 +329,7 @@ export class Game {
         bestScore: this.save.bestScore,
         roundBonus: this.roundBonus,
         isNewBest: this.isNewBest,
+        nearestDistance: nearestTargetDistance(this.targets.all, snap.finalReticle),
       },
       zoom: this.scope.zoom,
       zoomLevels: this.scope.levels,
@@ -354,4 +361,25 @@ function materialSound(type: TargetType): SoundName {
     default:
       return 'metal';
   }
+}
+
+/** Difficulty distance of the nearest live target to the reticle, if close. */
+function nearestTargetDistance(
+  targets: readonly ActiveTarget[],
+  reticle: Vec2,
+  maxWorldPx = 500,
+): number | null {
+  let best: number | null = null;
+  let bestDistSq = maxWorldPx * maxWorldPx;
+  for (const t of targets) {
+    if (!t.active || t.hit) continue;
+    const dx = t.position.x - reticle.x;
+    const dy = t.position.y - reticle.y;
+    const dSq = dx * dx + dy * dy;
+    if (dSq < bestDistSq) {
+      bestDistSq = dSq;
+      best = t.distance;
+    }
+  }
+  return best;
 }

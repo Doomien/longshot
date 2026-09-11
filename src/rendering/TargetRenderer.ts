@@ -30,6 +30,29 @@ export function drawTargets(
   ctx.restore();
 }
 
+/** F1 debug pass: ellipse hitboxes + target ids (spec debug requirements). */
+export function drawTargetDebug(
+  ctx: CanvasRenderingContext2D,
+  camera: CameraSnapshot,
+  targets: readonly ActiveTarget[],
+): void {
+  ctx.save();
+  applyCameraTransform(ctx, camera);
+  ctx.textAlign = 'center';
+  for (const t of targets) {
+    if (!t.active) continue;
+    ctx.strokeStyle = t.hit ? 'rgba(150,150,150,0.7)' : 'rgba(255,70,70,0.9)';
+    ctx.lineWidth = 3 / camera.zoom;
+    ctx.beginPath();
+    ctx.ellipse(t.position.x, t.position.y, t.width / 2, t.height / 2, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = t.hit ? '#999' : '#ff6b6b';
+    ctx.font = `${26 / camera.zoom}px ui-monospace, Menlo, monospace`;
+    ctx.fillText(`${t.id} d${t.distance}`, t.position.x, t.position.y - t.height / 2 - 12);
+  }
+  ctx.restore();
+}
+
 function drawSprite(ctx: CanvasRenderingContext2D, t: ActiveTarget): void {
   const w = t.width;
   const h = t.height;

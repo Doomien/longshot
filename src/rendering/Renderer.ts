@@ -52,6 +52,7 @@ export interface RenderFrame {
     bestScore: number;
     roundBonus: number;
     isNewBest: boolean;
+    nearestDistance: number | null;
   };
   zoom: number;
   zoomLevels: number[];

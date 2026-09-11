@@ -27,6 +27,7 @@ function stubCtx(): CanvasRenderingContext2D {
     fill: vi.fn(),
     stroke: vi.fn(),
     arc: vi.fn(),
+    ellipse: vi.fn(),
     rect: vi.fn(),
     createLinearGradient: vi.fn(() => gradient),
     createRadialGradient: vi.fn(() => gradient),
@@ -58,7 +59,7 @@ function makeFrame(debugVisible = false): RenderFrame {
     hud: {
       mode: 'playing', score: 0, shotsRemaining: 10, shotsTotal: 10, streak: 0, muted: false,
       paused: false, accuracy: 0, hits: 0, bestStreak: 0, bestScore: 0, roundBonus: 0,
-      isNewBest: false,
+      isNewBest: false, nearestDistance: null,
     },
     zoom: 2,
     zoomLevels: [1, 2, 4],
